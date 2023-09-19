@@ -40,7 +40,7 @@ void Renderer::Render(Scene* pScene) const
 
 			//From pixel to raster space
 			const auto cx = (2.f * pcx / static_cast<float>(m_Width) - 1) * aspectRatio;
-			const auto cy = 1 - 2 * pcy / static_cast<float>(m_Height);
+			const auto cy = 1 - 2.f * pcy / static_cast<float>(m_Height);
 
 			//From raster to camera space
 			const auto ray = Vector3{ cx,cy,1 };
@@ -48,12 +48,23 @@ void Renderer::Render(Scene* pScene) const
 			//From camera to world space.
 			const Vector3 rayDirection{ ray.Normalized() };
 
-			const Ray hitRay = { {0,0,0}, rayDirection };
-			ColorRGB finalColor{ hitRay.direction.x, hitRay.direction.y, hitRay.direction.z };
+			const Ray viewRay = { {0,0,0}, rayDirection };
+
+			
+			ColorRGB finalColor{ };
+			HitRecord closestHit{ };
+
+			Sphere testSphere{ {0,0,100}, 50, 0 };
+			GeometryUtils::HitTest_Sphere(testSphere, viewRay, closestHit);
 
 
 
-
+			if(closestHit.didHit)
+			{
+				const auto scaled_t = (closestHit.t - 50.f) / 40.f;
+				finalColor = ColorRGB{ scaled_t, scaled_t, scaled_t };
+				//finalColor = materials[closestHit.materialIndex]->Shade();
+			}
 
 			//Update Color in Buffer
 			finalColor.MaxToOne();

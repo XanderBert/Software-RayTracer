@@ -1,6 +1,8 @@
 #pragma once
 #include <cassert>
 #include <fstream>
+#include <iostream>
+#include <xmmintrin.h>
 #include "Math.h"
 #include "DataTypes.h"
 
@@ -12,8 +14,41 @@ namespace dae
 		//SPHERE HIT-TESTS
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W1
-			assert(false && "No Implemented Yet!");
+			const Vector3 oc = ray.origin - sphere.origin;
+
+			const float a = Vector3::Dot(ray.direction, ray.direction);
+			const float b = 2.0f * Vector3::Dot(ray.direction,oc);
+			const float c = Vector3::Dot(oc, oc) - sphere.radius * sphere.radius;
+
+			// Calculate discriminant without taking the square root
+			const float discriminant = b * b - 4 * a * c;
+
+			if (discriminant < 0)
+			{
+				return false;
+			}
+
+			// Calculate both roots
+			const float t0 = (-b - sqrtf(discriminant)) / (2.0f * a);
+			const float t1 = (-b + sqrtf(discriminant)) / (2.0f * a);
+
+			// Choose the smaller positive root (if any)
+			const float root = (t0 < t1) ? t0 : t1;
+
+			if (root >= ray.min && root <= ray.max)
+			{
+				if (!ignoreHitRecord && root < hitRecord.t)
+				{
+					hitRecord.t = root;
+					hitRecord.didHit = true;
+					hitRecord.origin = ray.origin + root * ray.direction;
+					hitRecord.normal = (hitRecord.origin - sphere.origin).Normalized();
+					hitRecord.materialIndex = sphere.materialIndex;
+				}
+
+				return true;
+			}
+
 			return false;
 		}
 
