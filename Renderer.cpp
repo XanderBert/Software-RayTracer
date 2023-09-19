@@ -23,9 +23,9 @@ Renderer::Renderer(SDL_Window * pWindow) :
 
 void Renderer::Render(Scene* pScene) const
 {
-	Camera& camera = pScene->GetCamera();
+	//Camera& camera = pScene->GetCamera();
 	auto& materials = pScene->GetMaterials();
-	auto& lights = pScene->GetLights();
+	//auto& lights = pScene->GetLights();
 
 	const auto aspectRatio = static_cast<float>(m_Width) / static_cast<float>(m_Height);
 
@@ -54,16 +54,13 @@ void Renderer::Render(Scene* pScene) const
 			ColorRGB finalColor{ };
 			HitRecord closestHit{ };
 
-			Sphere testSphere{ {0,0,100}, 50, 0 };
-			GeometryUtils::HitTest_Sphere(testSphere, viewRay, closestHit);
-
-
-
+			pScene->GetClosestHit(viewRay, closestHit);
+			
 			if(closestHit.didHit)
 			{
-				const auto scaled_t = (closestHit.t - 50.f) / 40.f;
-				finalColor = ColorRGB{ scaled_t, scaled_t, scaled_t };
-				//finalColor = materials[closestHit.materialIndex]->Shade();
+				//const auto scaled_t = (closestHit.t - 50.f) / 40.f;
+				//finalColor = ColorRGB{ scaled_t, scaled_t, scaled_t };
+				finalColor = materials[closestHit.materialIndex]->Shade();
 			}
 
 			//Update Color in Buffer

@@ -14,14 +14,14 @@ namespace dae
 		//SPHERE HIT-TESTS
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			const Vector3 oc = ray.origin - sphere.origin;
+			const auto oc = ray.origin - sphere.origin;
 
 			const float a = Vector3::Dot(ray.direction, ray.direction);
 			const float b = 2.0f * Vector3::Dot(ray.direction,oc);
 			const float c = Vector3::Dot(oc, oc) - sphere.radius * sphere.radius;
 
 			// Calculate discriminant without taking the square root
-			const float discriminant = b * b - 4 * a * c;
+			const auto discriminant = b * b - 4 * a * c;
 
 			if (discriminant < 0)
 			{
@@ -60,7 +60,7 @@ namespace dae
 #pragma endregion
 #pragma region Plane HitTest
 		//PLANE HIT-TESTS
-		inline bool HitTest_Plane(const Plane& plane, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
+		inline bool HitTest_Plane(const Plane& /*plane*/, const Ray& /*ray*/, HitRecord& /*hitRecord*/, bool /*ignoreHitRecord*/ = false)
 		{
 			//todo W1
 			assert(false && "No Implemented Yet!");
@@ -75,7 +75,7 @@ namespace dae
 #pragma endregion
 #pragma region Triangle HitTest
 		//TRIANGLE HIT-TESTS
-		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
+		inline bool HitTest_Triangle(const Triangle& /*triangle*/, const Ray& /*ray*/, HitRecord& /*hitRecord*/, bool /*ignoreHitRecord*/ = false)
 		{
 			//todo W5
 			assert(false && "No Implemented Yet!");
@@ -89,7 +89,7 @@ namespace dae
 		}
 #pragma endregion
 #pragma region TriangeMesh HitTest
-		inline bool HitTest_TriangleMesh(const TriangleMesh& mesh, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
+		inline bool HitTest_TriangleMesh(const TriangleMesh& /*mesh*/, const Ray& /*ray*/, HitRecord& /*hitRecord*/, bool /*ignoreHitRecord*/ = false)
 		{
 			//todo W5
 			assert(false && "No Implemented Yet!");
@@ -107,14 +107,14 @@ namespace dae
 	namespace LightUtils
 	{
 		//Direction from target to light
-		inline Vector3 GetDirectionToLight(const Light& light, const Vector3 origin)
+		inline Vector3 GetDirectionToLight(const Light& /*light*/, const Vector3 /*origin*/)
 		{
 			//todo W3
 			assert(false && "No Implemented Yet!");
 			return {};
 		}
 
-		inline ColorRGB GetRadiance(const Light& light, const Vector3& target)
+		inline ColorRGB GetRadiance(const Light& /*light*/, const Vector3& /*target*/)
 		{
 			//todo W3
 			assert(false && "No Implemented Yet!");
@@ -180,13 +180,13 @@ namespace dae
 
 				if(isnan(normal.x))
 				{
-					int k = 0;
+					//int k = 0;
 				}
 
 				normal.Normalize();
 				if (isnan(normal.x))
 				{
-					int k = 0;
+					//int k = 0;
 				}
 
 				normals.push_back(normal);

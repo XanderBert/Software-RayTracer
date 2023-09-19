@@ -39,17 +39,17 @@ namespace dae
 			return {};
 		}
 
-		void Update(Timer* pTimer)
+		void Update(Timer* /*pTimer*/)
 		{
-			const float deltaTime = pTimer->GetElapsed();
+			//const float deltaTime = pTimer->GetElapsed();
 
 			//Keyboard Input
-			const uint8_t* pKeyboardState = SDL_GetKeyboardState(nullptr);
+			//const uint8_t* pKeyboardState = SDL_GetKeyboardState(nullptr);
 
 
 			//Mouse Input
-			int mouseX{}, mouseY{};
-			const uint32_t mouseState = SDL_GetRelativeMouseState(&mouseX, &mouseY);
+			//int mouseX{}, mouseY{};
+			//const uint32_t mouseState = SDL_GetRelativeMouseState(&mouseX, &mouseY);
 
 			//todo: W2
 			//assert(false && "Not Implemented Yet");
