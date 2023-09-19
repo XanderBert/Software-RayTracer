@@ -1,4 +1,7 @@
 #include "Scene.h"
+
+#include <iostream>
+
 #include "Utils.h"
 #include "Material.h"
 
@@ -125,6 +128,7 @@ namespace dae {
 		AddPlane({ 0.f, -75.f, 0.f }, { 0.f, 1.f,0.f }, matId_Solid_Yellow);
 		AddPlane({ 0.f, 75.f, 0.f }, { 0.f, -1.f,0.f }, matId_Solid_Yellow);
 		AddPlane({ 0.f, 0.f, 125.f }, { 0.f, 0.f,-1.f }, matId_Solid_Magenta);
+
 	}
 #pragma endregion
 }
