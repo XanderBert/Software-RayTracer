@@ -60,10 +60,34 @@ namespace dae
 #pragma endregion
 #pragma region Plane HitTest
 		//PLANE HIT-TESTS
-		inline bool HitTest_Plane(const Plane& /*plane*/, const Ray& /*ray*/, HitRecord& /*hitRecord*/, bool /*ignoreHitRecord*/ = false)
+		inline bool HitTest_Plane(const Plane& plane, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W1
-			assert(false && "No Implemented Yet!");
+			// Ensure the plane normal is normalized.
+			const Vector3 normalizedNormal = plane.normal.Normalized();
+
+			const float directionNormal = Vector3::Dot(normalizedNormal, ray.direction);
+
+			if (fabs(directionNormal) > FLT_EPSILON)
+			{
+				const Vector3 planeOrigin = plane.origin - ray.origin;
+				const float originNormal = Vector3::Dot(planeOrigin, normalizedNormal);
+				const float t = originNormal / directionNormal;
+
+				// Check if t is within the valid range and not behind a previous hit.
+				if (t >= ray.min && t <= ray.max)
+				{
+					if (!ignoreHitRecord && t < hitRecord.t)
+					{
+						hitRecord.t = t;
+						hitRecord.didHit = true;
+						hitRecord.materialIndex = plane.materialIndex;
+						hitRecord.origin = ray.origin + t * ray.direction;
+						hitRecord.normal = normalizedNormal;
+					}
+					return true;
+				}
+			}
+
 			return false;
 		}
 

@@ -35,6 +35,11 @@ namespace dae {
 		{
 			GeometryUtils::HitTest_Sphere(sphere, ray, closestHit);
 		}
+
+		for (const auto& plane : m_PlaneGeometries)
+		{
+			GeometryUtils::HitTest_Plane(plane, ray, closestHit);
+		}
 	}
 
 	bool Scene::DoesHit(const Ray& /*ray*/) const
