@@ -27,15 +27,33 @@ void Renderer::Render(Scene* pScene) const
 	auto& materials = pScene->GetMaterials();
 	auto& lights = pScene->GetLights();
 
+	const auto aspectRatio = static_cast<float>(m_Width) / static_cast<float>(m_Height);
+
+
 	for (int px{}; px < m_Width; ++px)
 	{
 		for (int py{}; py < m_Height; ++py)
 		{
-			float gradient = px / static_cast<float>(m_Width);
-			gradient += py / static_cast<float>(m_Width);
-			gradient /= 2.0f;
+			//Get the middle of the pixel
+			const auto pcx{ static_cast<float>(px) + 0.5f };
+			const auto pcy{ static_cast<float>(py) + 0.5f };
 
-			ColorRGB finalColor{ gradient, gradient, gradient };
+			//From pixel to raster space
+			const auto cx = (2.f * pcx / static_cast<float>(m_Width) - 1) * aspectRatio;
+			const auto cy = 1 - 2 * pcy / static_cast<float>(m_Height);
+
+			//From raster to camera space
+			const auto ray = Vector3{ cx,cy,1 };
+			
+			//From camera to world space.
+			const Vector3 rayDirection{ ray.Normalized() };
+
+			const Ray hitRay = { {0,0,0}, rayDirection };
+			ColorRGB finalColor{ hitRay.direction.x, hitRay.direction.y, hitRay.direction.z };
+
+
+
+
 
 			//Update Color in Buffer
 			finalColor.MaxToOne();
