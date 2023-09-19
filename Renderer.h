@@ -2,6 +2,9 @@
 
 #include <cstdint>
 
+#include "Vector3.h"
+
+
 struct SDL_Window;
 struct SDL_Surface;
 
@@ -24,6 +27,9 @@ namespace dae
 		bool SaveBufferToImage() const;
 
 	private:
+		Vector3 GetRayDirection(float x, float y) const;
+
+
 		SDL_Window* m_pWindow{};
 
 		SDL_Surface* m_pBuffer{};
@@ -31,5 +37,6 @@ namespace dae
 
 		int m_Width{};
 		int m_Height{};
+		float m_AspectRatio{};
 	};
 }
