@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "ColorRGB.h"
+#include "Material.h"
 #include "Vector3.h"
 
 
@@ -28,15 +30,18 @@ namespace dae
 
 	private:
 		Vector3 GetRayDirection(float x, float y) const;
-
+		void RenderChunk(int startPx, int endPx, const Scene* pScene, const std::vector<Material*>& materials) const;
 
 		SDL_Window* m_pWindow{};
-
 		SDL_Surface* m_pBuffer{};
 		uint32_t* m_pBufferPixels{};
 
+		float m_AspectRatio{};
+
 		int m_Width{};
 		int m_Height{};
-		float m_AspectRatio{};
+
+		constexpr int m_ThreadCount{ 8 };
+
 	};
 }

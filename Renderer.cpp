@@ -4,6 +4,10 @@
 
 //Project includes
 #include "Renderer.h"
+
+#include <functional>
+#include <thread>
+
 #include "Math.h"
 #include "Matrix.h"
 #include "Material.h"
@@ -23,32 +27,24 @@ Renderer::Renderer(SDL_Window * pWindow) :
 	m_AspectRatio = static_cast<float>(m_Width) / static_cast<float>(m_Height);
 }
 
-void Renderer::Render(Scene* pScene) const
+void Renderer::RenderChunk(int startPx, int endPx, const Scene* pScene,	const std::vector<Material*>& materials) const
 {
-	//Camera& camera = pScene->GetCamera();
-	auto& materials = pScene->GetMaterials();
-	//auto& lights = pScene->GetLights();
-	
-
-	for (int px{}; px < m_Width; ++px)
+	for (int px = startPx; px < endPx; ++px)
 	{
-		for (int py{}; py < m_Height; ++py)
+		for (int py = 0; py < m_Height; ++py)
 		{
-			const Ray viewRay = { {0,0,0}, GetRayDirection(static_cast<float>(px), static_cast<float>(py))};
-
-			
+			const Ray viewRay = { {0, 0, 0}, GetRayDirection(static_cast<float>(px), static_cast<float>(py)) };
 
 			HitRecord closestHit{ };
 			pScene->GetClosestHit(viewRay, closestHit);
 
-
 			ColorRGB finalColor{ };
-			if(closestHit.didHit)
+			if (closestHit.didHit)
 			{
 				finalColor = materials[closestHit.materialIndex]->Shade();
 			}
 
-			//Update Color in Buffer
+			// Update Color in Buffer
 			finalColor.MaxToOne();
 
 			m_pBufferPixels[px + (py * m_Width)] = SDL_MapRGB(m_pBuffer->format,
@@ -57,6 +53,31 @@ void Renderer::Render(Scene* pScene) const
 				static_cast<uint8_t>(finalColor.b * 255));
 		}
 	}
+}
+
+
+void Renderer::Render(Scene* pScene) const
+{
+	//Camera& camera = pScene->GetCamera();
+	auto& materials = pScene->GetMaterials();
+	//auto& lights = pScene->GetLights();
+	
+
+	const int chunkSize = m_Width / m_ThreadCount;
+
+	std::vector<std::jthread> threads;
+
+	for (int i = 0; i < m_ThreadCount; ++i)
+	{
+		int startPx = i * chunkSize;
+		int endPx = (i == m_ThreadCount - 1) ? m_Width : (i + 1) * chunkSize;
+
+		threads.emplace_back([this, startPx, endPx, pScene, &materials]() 
+		{
+			RenderChunk(startPx, endPx, pScene, materials);
+		});
+	}
+
 
 	//@END
 	//Update SDL Surface
