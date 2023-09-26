@@ -17,7 +17,7 @@ namespace dae
 			const auto oc = ray.origin - sphere.origin;
 
 			const float a = Vector3::Dot(ray.direction, ray.direction);
-			const float b = 2.0f * Vector3::Dot(ray.direction,oc);
+			const float b = 2.0f * Vector3::Dot(ray.direction, oc);
 			const float c = Vector3::Dot(oc, oc) - sphere.radius * sphere.radius;
 
 			// Calculate discriminant without taking the square root
@@ -131,11 +131,19 @@ namespace dae
 	namespace LightUtils
 	{
 		//Direction from target to light
-		inline Vector3 GetDirectionToLight(const Light& /*light*/, const Vector3 /*origin*/)
+		inline Vector3 GetDirectionToLight(const Light& light, const Vector3 origin)
 		{
-			//todo W3
-			assert(false && "No Implemented Yet!");
-			return {};
+			if (light.type == LightType::Directional)
+			{
+				return{ -light.origin };
+			}
+
+			if (light.type == LightType::Point)
+			{
+				return { light.origin - origin };
+			}
+
+			return Vector3::Zero;
 		}
 
 		inline ColorRGB GetRadiance(const Light& /*light*/, const Vector3& /*target*/)
@@ -187,7 +195,7 @@ namespace dae
 				//read till end of line and ignore all remaining chars
 				file.ignore(1000, '\n');
 
-				if (file.eof()) 
+				if (file.eof())
 					break;
 			}
 
@@ -202,7 +210,7 @@ namespace dae
 				Vector3 edgeV0V2 = positions[i2] - positions[i0];
 				Vector3 normal = Vector3::Cross(edgeV0V1, edgeV0V2);
 
-				if(isnan(normal.x))
+				if (isnan(normal.x))
 				{
 					//int k = 0;
 				}

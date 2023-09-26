@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <thread>
 
 #include "ColorRGB.h"
 #include "Material.h"
@@ -42,7 +43,7 @@ namespace dae
 		int m_Width{};
 		int m_Height{};
 
-		constexpr int static m_ThreadCount{ 8 };
 
+		constexpr int static m_ThreadCount{ 8 };
 	};
 }

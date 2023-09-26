@@ -35,14 +35,37 @@ void Renderer::RenderChunk(int startPx, int endPx, Scene* pScene, const std::vec
 		{
 			const Ray viewRay = { pScene->GetCamera().origin, GetRayDirection(static_cast<float>(px), static_cast<float>(py), &pScene->GetCamera()) };
 
+
 			HitRecord closestHit{ };
+
 			pScene->GetClosestHit(viewRay, closestHit);
 
 			ColorRGB finalColor{ };
 			if (closestHit.didHit)
 			{
 				finalColor = materials[closestHit.materialIndex]->Shade();
+
+				for (const auto light : pScene->GetLights())
+				{
+					constexpr auto offset{ 0.001f };
+					const Vector3 offsetPosition{ closestHit.origin + closestHit.normal * offset };
+					Vector3 lightDirection{ LightUtils::GetDirectionToLight(light, offsetPosition) };
+					Ray lightRay{ offsetPosition, lightDirection.Normalized(), FLT_MIN, lightDirection.Magnitude() };
+					HitRecord lightHit{};
+					pScene->GetClosestHit(lightRay, lightHit);
+
+					if (lightHit.didHit)
+					{
+						finalColor *= 0.5f;
+					}
+				}
+
+
+
+
 			}
+
+
 
 			// Update Color in Buffer
 			finalColor.MaxToOne();
@@ -78,15 +101,6 @@ void Renderer::Render(Scene* pScene) const
 			});
 	}
 
-
-
-
-
-
-
-
-
-
 	//@END
 	//Update SDL Surface
 	SDL_UpdateWindowSurface(m_pWindow);
@@ -111,6 +125,7 @@ Vector3 Renderer::GetRayDirection(float x, float y, Camera* pCamera) const
 	const auto ray = Vector3{ cx,cy,1 };
 
 	//From camera to world space.
+	//Todo: Should be cached in memory
 	const Matrix cameraToWorld{ pCamera->CalculateCameraToWorld() };
 
 	return Vector3{ cameraToWorld.TransformVector(ray.Normalized()).Normalized() };
