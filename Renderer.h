@@ -12,6 +12,7 @@ struct SDL_Surface;
 
 namespace dae
 {
+	struct Camera;
 	class Scene;
 
 	class Renderer final
@@ -29,8 +30,8 @@ namespace dae
 		bool SaveBufferToImage() const;
 
 	private:
-		Vector3 GetRayDirection(float x, float y) const;
-		void RenderChunk(int startPx, int endPx, const Scene* pScene, const std::vector<Material*>& materials) const;
+		Vector3 GetRayDirection(float x, float y, Camera* pCamera) const;
+		void RenderChunk(int startPx, int endPx, Scene* pScene, const std::vector<Material*>& materials) const;
 
 		SDL_Window* m_pWindow{};
 		SDL_Surface* m_pBuffer{};
@@ -41,7 +42,7 @@ namespace dae
 		int m_Width{};
 		int m_Height{};
 
-		constexpr int m_ThreadCount{ 8 };
+		constexpr int static m_ThreadCount{ 8 };
 
 	};
 }

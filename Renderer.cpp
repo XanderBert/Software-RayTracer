@@ -16,7 +16,7 @@
 
 using namespace dae;
 
-Renderer::Renderer(SDL_Window * pWindow) :
+Renderer::Renderer(SDL_Window* pWindow) :
 	m_pWindow(pWindow),
 	m_pBuffer(SDL_GetWindowSurface(pWindow))
 {
@@ -27,13 +27,13 @@ Renderer::Renderer(SDL_Window * pWindow) :
 	m_AspectRatio = static_cast<float>(m_Width) / static_cast<float>(m_Height);
 }
 
-void Renderer::RenderChunk(int startPx, int endPx, const Scene* pScene,	const std::vector<Material*>& materials) const
+void Renderer::RenderChunk(int startPx, int endPx, Scene* pScene, const std::vector<Material*>& materials) const
 {
 	for (int px = startPx; px < endPx; ++px)
 	{
 		for (int py = 0; py < m_Height; ++py)
 		{
-			const Ray viewRay = { {0, 0, 0}, GetRayDirection(static_cast<float>(px), static_cast<float>(py)) };
+			const Ray viewRay = { pScene->GetCamera().origin, GetRayDirection(static_cast<float>(px), static_cast<float>(py), &pScene->GetCamera()) };
 
 			HitRecord closestHit{ };
 			pScene->GetClosestHit(viewRay, closestHit);
@@ -61,7 +61,7 @@ void Renderer::Render(Scene* pScene) const
 	//Camera& camera = pScene->GetCamera();
 	auto& materials = pScene->GetMaterials();
 	//auto& lights = pScene->GetLights();
-	
+
 
 	const int chunkSize = m_Width / m_ThreadCount;
 
@@ -72,11 +72,19 @@ void Renderer::Render(Scene* pScene) const
 		int startPx = i * chunkSize;
 		int endPx = (i == m_ThreadCount - 1) ? m_Width : (i + 1) * chunkSize;
 
-		threads.emplace_back([this, startPx, endPx, pScene, &materials]() 
-		{
-			RenderChunk(startPx, endPx, pScene, materials);
-		});
+		threads.emplace_back([this, startPx, endPx, pScene, &materials]()
+			{
+				RenderChunk(startPx, endPx, pScene, materials);
+			});
 	}
+
+
+
+
+
+
+
+
 
 
 	//@END
@@ -89,19 +97,21 @@ bool Renderer::SaveBufferToImage() const
 	return SDL_SaveBMP(m_pBuffer, "RayTracing_Buffer.bmp");
 }
 
-Vector3 Renderer::GetRayDirection(float x, float y) const
+Vector3 Renderer::GetRayDirection(float x, float y, Camera* pCamera) const
 {
 	//Get the middle of the pixel
 	const auto pcx{ x + 0.5f };
 	const auto pcy{ y + 0.5f };
 
 	//From pixel to raster space
-	const auto cx = (2.f * pcx / static_cast<float>(m_Width) - 1) * m_AspectRatio;
-	const auto cy = 1 - 2.f * pcy / static_cast<float>(m_Height);
+	const auto cx = (2.f * pcx / static_cast<float>(m_Width) - 1) * m_AspectRatio * pCamera->fovAngle;
+	const auto cy = 1 - 2.f * pcy / static_cast<float>(m_Height) * pCamera->fovAngle;
 
 	//From raster to camera space
 	const auto ray = Vector3{ cx,cy,1 };
 
 	//From camera to world space.
-	return Vector3{ ray.Normalized() };
+	const Matrix cameraToWorld{ pCamera->CalculateCameraToWorld() };
+
+	return Vector3{ cameraToWorld.TransformVector(ray.Normalized()).Normalized() };
 }
