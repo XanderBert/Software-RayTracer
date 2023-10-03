@@ -59,9 +59,7 @@ namespace dae
 
 		ColorRGB Shade(const HitRecord& /*hitRecord*/ = {}, const Vector3& /*l*/ = {}, const Vector3& /*v*/ = {}) override
 		{
-			//todo: W3
-			assert(false && "Not Implemented Yet");
-			return {};
+			return BRDF::Lambert(m_DiffuseReflectance, m_DiffuseColor);
 		}
 
 	private:
@@ -71,8 +69,7 @@ namespace dae
 #pragma endregion
 
 #pragma region Material LAMBERT PHONG
-	//LAMBERT-PHONG
-	//=============
+	//LAMBERs	//=============
 	class Material_LambertPhong final : public Material
 	{
 	public:
@@ -82,11 +79,9 @@ namespace dae
 		{
 		}
 
-		ColorRGB Shade(const HitRecord& /*hitRecord*/ = {}, const Vector3& /*l*/ = {}, const Vector3& /*v*/ = {}) override
+		ColorRGB Shade(const HitRecord& hitRecord = {}, const Vector3& l = {}, const Vector3& v = {}) override
 		{
-			//todo: W3
-			assert(false && "Not Implemented Yet");
-			return {};
+			return BRDF::Lambert(m_DiffuseReflectance, m_DiffuseColor) + BRDF::Phong(m_SpecularReflectance, m_PhongExponent, -l, v, hitRecord.normal);
 		}
 
 	private:
@@ -107,11 +102,32 @@ namespace dae
 		{
 		}
 
-		ColorRGB Shade(const HitRecord& /*hitRecord*/ = {}, const Vector3& /*l*/ = {}, const Vector3& /*v*/ = {}) override
+		ColorRGB Shade(const HitRecord& hitRecord = {}, const Vector3& l = {}, const Vector3& v = {}) override
 		{
-			//todo: W3
-			assert(false && "Not Implemented Yet");
-			return {};
+			const ColorRGB f0{ m_Metalness < FLT_EPSILON ? ColorRGB{ 0.04f, 0.04f, 0.04f } : m_Albedo };
+
+			const Vector3 halfVector{ (l + v).Normalized() };
+
+			const ColorRGB fresnel{ BRDF::FresnelFunction_Schlick(halfVector, v, f0) };
+
+			const auto normalDistribution{ BRDF::NormalDistribution_GGX(hitRecord.normal, halfVector, m_Roughness) };
+
+			const auto geometryShadows{ BRDF::GeometryFunction_Smith(hitRecord.normal, v, l, m_Roughness) };
+
+			const auto divisor{ 1.0f / (4.0f * Vector3::Dot(v, hitRecord.normal) * Vector3::Dot(l, hitRecord.normal)) };
+			const ColorRGB specular{ (fresnel * geometryShadows * normalDistribution) * divisor };
+
+			ColorRGB lambert{};
+			if (m_Metalness < FLT_EPSILON)
+			{
+				lambert = BRDF::Lambert({ 1.0f - fresnel.r, 1.0f - fresnel.g,  1.0f - fresnel.b }, m_Albedo);
+			}
+			else
+			{
+				lambert = BRDF::Lambert(0, m_Albedo);
+			}
+
+			return lambert + specular;
 		}
 
 	private:

@@ -4,15 +4,14 @@
 
 //Project includes
 #include "Renderer.h"
-
 #include <functional>
 #include <thread>
-
 #include "Math.h"
 #include "Matrix.h"
 #include "Material.h"
 #include "Scene.h"
 #include "Utils.h"
+#include "Vector3.h"
 
 using namespace dae;
 
@@ -23,7 +22,6 @@ Renderer::Renderer(SDL_Window* pWindow) :
 	//Initialize
 	SDL_GetWindowSize(pWindow, &m_Width, &m_Height);
 	m_pBufferPixels = static_cast<uint32_t*>(m_pBuffer->pixels);
-
 	m_AspectRatio = static_cast<float>(m_Width) / static_cast<float>(m_Height);
 }
 
@@ -33,47 +31,81 @@ void Renderer::RenderChunk(int startPx, int endPx, Scene* pScene, const std::vec
 	{
 		for (int py = 0; py < m_Height; ++py)
 		{
-			const Ray viewRay = { pScene->GetCamera().origin, GetRayDirection(static_cast<float>(px), static_cast<float>(py), &pScene->GetCamera()) };
+			const auto rayDirection = GetRayDirection(static_cast<float>(px), static_cast<float>(py), &pScene->GetCamera());
+			const Ray viewRay = { pScene->GetCamera().origin, rayDirection };
+			
+			ColorRGB finalColor{};
+			
 
-
-			HitRecord closestHit{ };
-
+			//Contains information about a potential hit.
+			HitRecord closestHit{};
 			pScene->GetClosestHit(viewRay, closestHit);
 
-			ColorRGB finalColor{ };
 			if (closestHit.didHit)
 			{
-				finalColor = materials[closestHit.materialIndex]->Shade();
+				const Vector3 offsetPosition{ closestHit.origin + closestHit.normal * m_RayOffset };
 
-				for (const auto light : pScene->GetLights())
+
+
+				for (const auto& light : pScene->GetLights())
 				{
-					constexpr auto offset{ 0.001f };
-					const Vector3 offsetPosition{ closestHit.origin + closestHit.normal * offset };
 					Vector3 lightDirection{ LightUtils::GetDirectionToLight(light, offsetPosition) };
-					Ray lightRay{ offsetPosition, lightDirection.Normalized(), FLT_MIN, lightDirection.Magnitude() };
-					HitRecord lightHit{};
-					pScene->GetClosestHit(lightRay, lightHit);
+					const auto lightDistance{ lightDirection.Normalize() };
 
-					if (lightHit.didHit)
+
+					if (m_ShadowsEnabled)
 					{
-						finalColor *= 0.5f;
+						const Ray lightRay{ offsetPosition, lightDirection, FLT_MIN, lightDistance };
+						HitRecord lightHit{};
+						pScene->GetClosestHit(lightRay, lightHit);
+
+						if (lightHit.didHit)
+						{
+							continue;
+						}
+					}
+
+					switch (m_LightingMode)
+					{
+					case LightingMode::ObservedArea: //LambertCosine
+					{
+						const auto lightNormalAngle{ std::max(Vector3::Dot(closestHit.normal, lightDirection), 0.0f) };
+						finalColor += ColorRGB{ lightNormalAngle, lightNormalAngle, lightNormalAngle };
+						break;
+					}
+
+					case LightingMode::Radiance:
+					{
+						finalColor += LightUtils::GetRadiance(light, closestHit.origin);
+						break;
+					}
+
+					case LightingMode::BRDF:
+					{
+						const ColorRGB BRDF{ materials[closestHit.materialIndex]->Shade(closestHit, lightDirection, -rayDirection) };
+						finalColor += BRDF;
+						break;
+					}
+
+					case LightingMode::Combined:
+					{
+						const float lightNormalAngle{ std::max(Vector3::Dot(closestHit.normal, lightDirection), 0.0f) };
+						const ColorRGB radiance{ LightUtils::GetRadiance(light, closestHit.origin) };
+						const ColorRGB BRDF{ materials[closestHit.materialIndex]->Shade(closestHit, lightDirection, -rayDirection) };
+						finalColor += radiance * BRDF * lightNormalAngle;
+						break;
+					}
 					}
 				}
-
-
-
-
 			}
 
-
-
-			// Update Color in Buffer
+			//Update Color in Buffer
 			finalColor.MaxToOne();
 
 			m_pBufferPixels[px + (py * m_Width)] = SDL_MapRGB(m_pBuffer->format,
-				static_cast<uint8_t>(finalColor.r * 255),
-				static_cast<uint8_t>(finalColor.g * 255),
-				static_cast<uint8_t>(finalColor.b * 255));
+			static_cast<uint8_t>(finalColor.r * 255),
+			static_cast<uint8_t>(finalColor.g * 255),
+			static_cast<uint8_t>(finalColor.b * 255));
 		}
 	}
 }
@@ -81,9 +113,7 @@ void Renderer::RenderChunk(int startPx, int endPx, Scene* pScene, const std::vec
 
 void Renderer::Render(Scene* pScene) const
 {
-	//Camera& camera = pScene->GetCamera();
 	auto& materials = pScene->GetMaterials();
-	//auto& lights = pScene->GetLights();
 
 
 	const int chunkSize = m_Width / m_ThreadCount;
@@ -111,6 +141,12 @@ bool Renderer::SaveBufferToImage() const
 	return SDL_SaveBMP(m_pBuffer, "RayTracing_Buffer.bmp");
 }
 
+void Renderer::CycleLightingMode()
+{
+	//Increment the lighting mode
+	m_LightingMode = static_cast<LightingMode>((static_cast<int>(m_LightingMode) + 1) % static_cast<int>(LightingMode::COUNT));
+}
+
 Vector3 Renderer::GetRayDirection(float x, float y, Camera* pCamera) const
 {
 	//Get the middle of the pixel
@@ -128,5 +164,6 @@ Vector3 Renderer::GetRayDirection(float x, float y, Camera* pCamera) const
 	//Todo: Should be cached in memory
 	const Matrix cameraToWorld{ pCamera->CalculateCameraToWorld() };
 
+	//Normalize and return
 	return Vector3{ cameraToWorld.TransformVector(ray.Normalized()).Normalized() };
 }

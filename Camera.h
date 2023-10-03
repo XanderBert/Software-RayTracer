@@ -38,8 +38,8 @@ namespace dae
 		Matrix CalculateCameraToWorld()
 		{
 			right = Vector3::Cross(Vector3::UnitY, forward).Normalized();
-
 			up = Vector3::Cross(forward, right).Normalized();
+
 
 			Matrix worldMatrix{ right,
 								up,
@@ -53,7 +53,6 @@ namespace dae
 
 		void Update(const Timer* pTimer)
 		{
-
 			direction = { Vector3::Zero };
 			const float deltaTime = pTimer->GetElapsed();
 
@@ -75,14 +74,12 @@ namespace dae
 			forward.Normalize();
 		}
 
-		Vector3 GetKeyboardInput(const uint8_t* keyboardState, float deltaTime) const
+		void GetKeyboardInput(const uint8_t* keyboardState, float deltaTime) const
 		{
-			direction += keyboardState[SDL_SCANCODE_W] ? velocity * forward * deltaTime : Vector3{};
-			direction += keyboardState[SDL_SCANCODE_S] ? -velocity * forward * deltaTime : Vector3{};
-			direction += keyboardState[SDL_SCANCODE_D] ? velocity * right * deltaTime : Vector3{};
-			direction += keyboardState[SDL_SCANCODE_A] ? -velocity * right * deltaTime : Vector3{};
-
-			return direction;
+			direction += keyboardState[SDL_SCANCODE_W] ? velocity * forward * deltaTime : Vector3::Zero;
+			direction += keyboardState[SDL_SCANCODE_S] ? -velocity * forward * deltaTime : Vector3::Zero;
+			direction += keyboardState[SDL_SCANCODE_D] ? velocity * right * deltaTime : Vector3::Zero;
+			direction += keyboardState[SDL_SCANCODE_A] ? -velocity * right * deltaTime : Vector3::Zero;
 		}
 
 		void HandleMouseInput(uint32_t mouseState, const Vector3& mouseF, float deltaTime)

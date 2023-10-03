@@ -1,20 +1,15 @@
 #pragma once
-
-#include <cstdint>
-#include <thread>
-
-#include "ColorRGB.h"
-#include "Material.h"
-#include "Vector3.h"
-
+#include <vector>
 
 struct SDL_Window;
 struct SDL_Surface;
 
 namespace dae
 {
-	struct Camera;
 	class Scene;
+	class Material;
+	struct Vector3;
+	struct Camera;
 
 	class Renderer final
 	{
@@ -30,6 +25,9 @@ namespace dae
 		void Render(Scene* pScene) const;
 		bool SaveBufferToImage() const;
 
+		void CycleLightingMode();
+		void ToggleShadows() { m_ShadowsEnabled = !m_ShadowsEnabled; }
+
 	private:
 		Vector3 GetRayDirection(float x, float y, Camera* pCamera) const;
 		void RenderChunk(int startPx, int endPx, Scene* pScene, const std::vector<Material*>& materials) const;
@@ -39,10 +37,27 @@ namespace dae
 		uint32_t* m_pBufferPixels{};
 
 		float m_AspectRatio{};
+		static constexpr float m_RayOffset{ 0.001f };
 
 		int m_Width{};
 		int m_Height{};
 
+
+
+
+
+		enum class LightingMode
+		{
+			ObservedArea,
+			Radiance,
+			BRDF,
+			Combined,
+			//@end
+			COUNT
+
+		};
+		bool m_ShadowsEnabled{ true };
+		LightingMode m_LightingMode{ LightingMode::Combined };
 
 		constexpr int static m_ThreadCount{ 8 };
 	};
