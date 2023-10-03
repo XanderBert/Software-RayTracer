@@ -42,12 +42,14 @@ int main(int argc, char* args[])
 		return 1;
 
 	//Initialize "framework"
+
+	const auto pScene = new Scene_W3();
 	const auto pTimer = new Timer();
-	const auto pRenderer = new Renderer(pWindow);
+	const auto pRenderer = new Renderer(pWindow, pScene);
 
 	//const auto pScene = new Scene_W1();
 	//const auto pScene = new Scene_W2();
-	const auto pScene = new Scene_W3();
+
 
 	pScene->Initialize();
 
