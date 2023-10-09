@@ -27,6 +27,7 @@ namespace dae {
 		return x * x + y * y + z * z;
 	}
 
+	//Nroramlize the vector and return the magnitude before normalizing
 	float Vector3::Normalize()
 	{
 		const float m = Magnitude();
