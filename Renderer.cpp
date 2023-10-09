@@ -7,11 +7,11 @@
 #include <functional>
 #include <thread>
 #include "Math.h"
-#include "Matrix.h"
 #include "Material.h"
 #include "Scene.h"
 #include "Utils.h"
-#include "Vector3.h"
+#include "DirectMath/MathHelper.h"
+
 
 using namespace dae;
 
@@ -43,19 +43,28 @@ void Renderer::RenderChunk(int startPx, int endPx, Scene* pScene, const std::vec
 
 			if (closestHit.didHit)
 			{
-				const Vector3 offsetPosition{ closestHit.origin + closestHit.normal * m_RayOffset };
+				//closestHit.origin + closestHit.normal * m_RayOffset
+				const auto closestHitOrigin{ XMLoadFloat3(&closestHit.origin) };
+				const auto closestHitNormal{ XMLoadFloat3(&closestHit.normal) };
+				const auto positionOffset{ closestHitOrigin + (closestHitNormal, XMVectorReplicate(m_RayOffset)) };
+				XMFLOAT3 offsetPosition{ };
+				XMStoreFloat3(&offsetPosition, positionOffset);
 
 
 
 				for (const auto& light : pScene->GetLights())
 				{
-					Vector3 lightDirection{ LightUtils::GetDirectionToLight(light, offsetPosition) };
-					const auto lightDistance{ lightDirection.Normalize() };
+					XMFLOAT3 lightDirection{ LightUtils::GetDirectionToLight(light, offsetPosition) };
+					auto lightDirectionVector{ XMLoadFloat3(&lightDirection) };
+					XMFLOAT3 lightDistance{  };
+					XMStoreFloat3(&lightDistance, XMVector3Normalize(lightDirectionVector));
+
 
 
 					if (m_ShadowsEnabled)
 					{
-						const Ray lightRay{ offsetPosition, lightDirection, FLT_MIN, lightDistance };
+						//TODO FI MA
+						const Ray lightRay{ offsetPosition, lightDirection, FLT_MIN, lightDistance.x };
 						HitRecord lightHit{};
 						pScene->GetClosestHit(lightRay, lightHit);
 
@@ -69,7 +78,9 @@ void Renderer::RenderChunk(int startPx, int endPx, Scene* pScene, const std::vec
 					{
 					case LightingMode::ObservedArea: //LambertCosine
 					{
-						const auto lightNormalAngle{ std::max(Vector3::Dot(closestHit.normal, lightDirection), 0.0f) };
+						auto lightNormalAngle = XMMax(XMVectorGetX(XMVector3Dot(closestHitNormal, lightDirectionVector)), 0.0f) ;
+
+						//const auto lightNormalAngle{ std::max(Vector3::Dot(closestHit.normal, lightDirection), 0.0f) };
 						finalColor += ColorRGB{ lightNormalAngle, lightNormalAngle, lightNormalAngle };
 						break;
 					}
@@ -82,17 +93,19 @@ void Renderer::RenderChunk(int startPx, int endPx, Scene* pScene, const std::vec
 
 					case LightingMode::BRDF:
 					{
-						const ColorRGB BRDF{ materials[closestHit.materialIndex]->Shade(closestHit, lightDirection, -rayDirection) };
+						const ColorRGB BRDF{ materials[closestHit.materialIndex]->Shade(closestHit, lightDirection, MathHelper::NegateXMFLOAT3(rayDirection)) };
 						finalColor += BRDF;
 						break;
 					}
 
 					case LightingMode::Combined:
 					{
-						const float lightNormalAngle{ std::max(Vector3::Dot(closestHit.normal, lightDirection), 0.0f) };
+							auto lightNormalAngle = XMMax(XMVectorGetX(XMVector3Dot(closestHitNormal, lightDirectionVector)), 0.0f);
+
+							ColorRGB color{ lightNormalAngle, lightNormalAngle, lightNormalAngle };
 						const ColorRGB radiance{ LightUtils::GetRadiance(light, closestHit.origin) };
-						const ColorRGB BRDF{ materials[closestHit.materialIndex]->Shade(closestHit, lightDirection, -rayDirection) };
-						finalColor += radiance * BRDF * lightNormalAngle;
+						const ColorRGB BRDF{ materials[closestHit.materialIndex]->Shade(closestHit, lightDirection, MathHelper::NegateXMFLOAT3(rayDirection)) };
+						finalColor += radiance * BRDF * color;
 						break;
 					}
 					}
@@ -147,7 +160,7 @@ void Renderer::CycleLightingMode()
 	m_LightingMode = static_cast<LightingMode>((static_cast<int>(m_LightingMode) + 1) % static_cast<int>(LightingMode::COUNT));
 }
 
-Vector3 Renderer::GetRayDirection(float x, float y, Camera* pCamera) const
+XMFLOAT3 Renderer::GetRayDirection(float x, float y, Camera* pCamera) const
 {
 	//Get the middle of the pixel
 	const auto pcx{ x + 0.5f };
@@ -158,12 +171,17 @@ Vector3 Renderer::GetRayDirection(float x, float y, Camera* pCamera) const
 	const auto cy = 1 - 2.f * pcy / static_cast<float>(m_Height) * pCamera->fovAngle;
 
 	//From raster to camera space
-	const auto ray = Vector3{ cx,cy,1 };
+	const XMVECTOR ray = XMVector3Normalize(XMVectorSet(cx, cy, 1.f, 0.f));
 
 	//From camera to world space.
 	//Todo: Should be cached in memory
-	const Matrix cameraToWorld{ pCamera->CalculateCameraToWorld() };
+	const auto cameraToWorld{ pCamera->CalculateCameraToWorld() };
 
 	//Normalize and return
-	return Vector3{ cameraToWorld.TransformVector(ray.Normalized()).Normalized() };
+	const auto transformedVector = XMVector3Normalize(XMVector3Transform(ray, cameraToWorld));
+	XMFLOAT3 transformedVectorF{};
+	XMStoreFloat3(&transformedVectorF, transformedVector);
+
+
+	return transformedVectorF;
 }

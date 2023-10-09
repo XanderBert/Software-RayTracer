@@ -47,18 +47,18 @@ namespace dae
 
 		std::vector<Plane> m_PlaneGeometries{};
 		std::vector<Sphere> m_SphereGeometries{};
-		std::vector<TriangleMesh> m_TriangleMeshGeometries{};
+		//std::vector<TriangleMesh> m_TriangleMeshGeometries{};
 		std::vector<Light> m_Lights{};
 		std::vector<Material*> m_Materials{};
 
 		Camera m_Camera{};
 
-		Sphere* AddSphere(const Vector3& origin, float radius, unsigned char materialIndex = 0);
-		Plane* AddPlane(const Vector3& origin, const Vector3& normal, unsigned char materialIndex = 0);
-		TriangleMesh* AddTriangleMesh(TriangleCullMode cullMode, unsigned char materialIndex = 0);
+		Sphere* AddSphere(const XMFLOAT3& origin, float radius, unsigned char materialIndex = 0);
+		Plane* AddPlane(const XMFLOAT3& origin, const XMFLOAT3& normal, unsigned char materialIndex = 0);
+		//TriangleMesh* AddTriangleMesh(TriangleCullMode cullMode, unsigned char materialIndex = 0);
 
-		Light* AddPointLight(const Vector3& origin, float intensity, const ColorRGB& color);
-		Light* AddDirectionalLight(const Vector3& direction, float intensity, const ColorRGB& color);
+		Light* AddPointLight(const XMFLOAT3& origin, float intensity, const ColorRGB& color);
+		Light* AddDirectionalLight(const XMFLOAT3& direction, float intensity, const ColorRGB& color);
 		unsigned char AddMaterial(Material* pMaterial);
 	};
 

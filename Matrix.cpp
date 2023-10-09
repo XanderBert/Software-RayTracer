@@ -1,5 +1,3 @@
-#include "Matrix.h"
-
 #include <cassert>
 
 #include "MathHelpers.h"

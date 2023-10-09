@@ -1,4 +1,5 @@
 #pragma once
+#include <DirectXMath.h>
 #include <vector>
 
 struct SDL_Window;
@@ -29,7 +30,7 @@ namespace dae
 		void ToggleShadows() { m_ShadowsEnabled = !m_ShadowsEnabled; }
 
 	private:
-		Vector3 GetRayDirection(float x, float y, Camera* pCamera) const;
+		DirectX::XMFLOAT3 GetRayDirection(float x, float y, Camera* pCamera) const;
 		void RenderChunk(int startPx, int endPx, Scene* pScene, const std::vector<Material*>& materials) const;
 
 		SDL_Window* m_pWindow{};

@@ -14,7 +14,7 @@ namespace dae {
 	{
 		m_SphereGeometries.reserve(32);
 		m_PlaneGeometries.reserve(32);
-		m_TriangleMeshGeometries.reserve(32);
+		//m_TriangleMeshGeometries.reserve(32);
 		m_Lights.reserve(32);
 	}
 
@@ -52,6 +52,7 @@ namespace dae {
 			}
 		}
 
+
 		for (size_t i{}; i < m_PlaneGeometries.size(); ++i)
 		{
 			if (GeometryUtils::HitTest_Plane(m_PlaneGeometries[i], ray))
@@ -64,7 +65,7 @@ namespace dae {
 	}
 
 #pragma region Scene Helpers
-	Sphere* Scene::AddSphere(const Vector3& origin, float radius, unsigned char materialIndex)
+	Sphere* Scene::AddSphere(const DirectX::XMFLOAT3& origin, float radius, unsigned char materialIndex)
 	{
 		Sphere s;
 		s.origin = origin;
@@ -75,7 +76,7 @@ namespace dae {
 		return &m_SphereGeometries.back();
 	}
 
-	Plane* Scene::AddPlane(const Vector3& origin, const Vector3& normal, unsigned char materialIndex)
+	Plane* Scene::AddPlane(const XMFLOAT3& origin, const XMFLOAT3& normal, unsigned char materialIndex)
 	{
 		Plane p;
 		p.origin = origin;
@@ -86,7 +87,7 @@ namespace dae {
 		return &m_PlaneGeometries.back();
 	}
 
-	TriangleMesh* Scene::AddTriangleMesh(TriangleCullMode cullMode, unsigned char materialIndex)
+	/*TriangleMesh* Scene::AddTriangleMesh(TriangleCullMode cullMode, unsigned char materialIndex)
 	{
 		TriangleMesh m{};
 		m.cullMode = cullMode;
@@ -94,9 +95,9 @@ namespace dae {
 
 		m_TriangleMeshGeometries.emplace_back(m);
 		return &m_TriangleMeshGeometries.back();
-	}
+	}*/
 
-	Light* Scene::AddPointLight(const Vector3& origin, float intensity, const ColorRGB& color)
+	Light* Scene::AddPointLight(const XMFLOAT3& origin, float intensity, const ColorRGB& color)
 	{
 		Light l;
 		l.origin = origin;
@@ -108,7 +109,7 @@ namespace dae {
 		return &m_Lights.back();
 	}
 
-	Light* Scene::AddDirectionalLight(const Vector3& direction, float intensity, const ColorRGB& color)
+	Light* Scene::AddDirectionalLight(const XMFLOAT3& direction, float intensity, const ColorRGB& color)
 	{
 		Light l;
 		l.direction = direction;

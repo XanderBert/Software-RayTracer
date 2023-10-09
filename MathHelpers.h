@@ -2,6 +2,7 @@
 #include <cmath>
 #include <float.h>
 
+
 namespace dae
 {
 	/* --- CONSTANTS --- */

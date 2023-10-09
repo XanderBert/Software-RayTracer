@@ -2,6 +2,7 @@
 #include "Math.h"
 #include "DataTypes.h"
 #include "BRDFs.h"
+#include "DirectMath/MathHelper.h"
 
 namespace dae
 {
@@ -24,7 +25,7 @@ namespace dae
 		 * \param v view direction
 		 * \return color
 		 */
-		virtual ColorRGB Shade(const HitRecord& hitRecord = {}, const Vector3& l = {}, const Vector3& v = {}) = 0;
+		virtual ColorRGB Shade(const HitRecord& hitRecord = {}, const XMFLOAT3& l = {}, const XMFLOAT3& v = {}) = 0;
 	};
 #pragma endregion
 
@@ -38,7 +39,7 @@ namespace dae
 		{
 		}
 
-		ColorRGB Shade(const HitRecord& /*hitRecord*/, const Vector3& /*l*/, const Vector3& /*v*/) override
+		ColorRGB Shade(const HitRecord& /*hitRecord*/, const XMFLOAT3& /*l*/, const XMFLOAT3& /*v*/) override
 		{
 			return m_Color;
 		}
@@ -57,7 +58,7 @@ namespace dae
 		Material_Lambert(const ColorRGB& diffuseColor, float diffuseReflectance) :
 			m_DiffuseColor(diffuseColor), m_DiffuseReflectance(diffuseReflectance){}
 
-		ColorRGB Shade(const HitRecord& /*hitRecord*/ = {}, const Vector3& /*l*/ = {}, const Vector3& /*v*/ = {}) override
+		ColorRGB Shade(const HitRecord& /*hitRecord*/ = {}, const XMFLOAT3& /*l*/ = {}, const XMFLOAT3 & /*v*/ = {}) override
 		{
 			return BRDF::Lambert(m_DiffuseReflectance, m_DiffuseColor);
 		}
@@ -79,9 +80,9 @@ namespace dae
 		{
 		}
 
-		ColorRGB Shade(const HitRecord& hitRecord = {}, const Vector3& l = {}, const Vector3& v = {}) override
+		ColorRGB Shade(const HitRecord& hitRecord = {}, const XMFLOAT3& l = {}, const XMFLOAT3& v = {}) override
 		{
-			return BRDF::Lambert(m_DiffuseReflectance, m_DiffuseColor) + BRDF::Phong(m_SpecularReflectance, m_PhongExponent, -l, v, hitRecord.normal);
+			return BRDF::Lambert(m_DiffuseReflectance, m_DiffuseColor) + BRDF::Phong(m_SpecularReflectance, m_PhongExponent, MathHelper::NegateXMFLOAT3(l) , v, hitRecord.normal);
 		}
 
 	private:
@@ -102,20 +103,33 @@ namespace dae
 		{
 		}
 
-		ColorRGB Shade(const HitRecord& hitRecord = {}, const Vector3& l = {}, const Vector3& v = {}) override
+		ColorRGB Shade(const HitRecord& hitRecord = {}, const XMFLOAT3& l = {}, const XMFLOAT3& v = {}) override
 		{
-			const ColorRGB f0{ m_Metalness < FLT_EPSILON ? ColorRGB{ 0.04f, 0.04f, 0.04f } : m_Albedo };
+			ColorRGB f0{ m_Metalness < FLT_EPSILON ? ColorRGB{ 0.04f, 0.04f, 0.04f } : m_Albedo };
 
-			const Vector3 halfVector{ (l + v).Normalized() };
+
+			const XMVECTOR sumVector = XMVectorAdd(XMLoadFloat3(&l), XMLoadFloat3(&v));
+			const XMVECTOR halfVectorNormalized = XMVector3Normalize(sumVector);
+			XMFLOAT3 halfVector{};
+
+			XMStoreFloat3(&halfVector, halfVectorNormalized);
+
 
 			const ColorRGB fresnel{ BRDF::FresnelFunction_Schlick(halfVector, v, f0) };
 
 			const auto normalDistribution{ BRDF::NormalDistribution_GGX(hitRecord.normal, halfVector, m_Roughness) };
-
 			const auto geometryShadows{ BRDF::GeometryFunction_Smith(hitRecord.normal, v, l, m_Roughness) };
 
-			const auto divisor{ 1.0f / (4.0f * Vector3::Dot(v, hitRecord.normal) * Vector3::Dot(l, hitRecord.normal)) };
-			const ColorRGB specular{ (fresnel * geometryShadows * normalDistribution) * divisor };
+
+
+			const auto viewDot{ XMVector3Dot(XMLoadFloat3(&v), XMLoadFloat3(&hitRecord.normal)) };
+			const auto lDot{ XMVector3Dot(XMLoadFloat3(&l), XMLoadFloat3(&hitRecord.normal)) };
+			const auto scaleDivisor = XMVectorScale(XMVectorMultiply(viewDot, lDot), 4.0f);
+	
+			const auto divisor{ XMVectorReciprocal(scaleDivisor)};
+			
+			const ColorRGB colorDivisor = { XMVectorGetX(divisor), XMVectorGetY(divisor), XMVectorGetZ(divisor) };
+			const ColorRGB specular{ (fresnel * geometryShadows * normalDistribution) * colorDivisor };
 
 			ColorRGB lambert{};
 			if (m_Metalness < FLT_EPSILON)

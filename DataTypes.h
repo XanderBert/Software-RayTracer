@@ -4,12 +4,13 @@
 #include "Math.h"
 #include "vector"
 
+using namespace DirectX;
 namespace dae
 {
 #pragma region GEOMETRY
 	struct Sphere
 	{
-		Vector3 origin{};
+		XMFLOAT3 origin{};
 		float radius{};
 
 		unsigned char materialIndex{ 0 };
@@ -17,8 +18,8 @@ namespace dae
 
 	struct Plane
 	{
-		Vector3 origin{};
-		Vector3 normal{};
+		XMFLOAT3 origin{};
+		XMFLOAT3 normal{};
 
 		unsigned char materialIndex{ 0 };
 	};
@@ -30,115 +31,116 @@ namespace dae
 		NoCulling
 	};
 
-	struct Triangle
-	{
-		Triangle() = default;
-		Triangle(const Vector3& _v0, const Vector3& _v1, const Vector3& _v2, const Vector3& _normal):
-			v0{_v0}, v1{_v1}, v2{_v2}, normal{_normal.Normalized()}{}
+	//struct Triangle
+	//{
+	//	Triangle() = default;
 
-		Triangle(const Vector3& _v0, const Vector3& _v1, const Vector3& _v2) :
-			v0{ _v0 }, v1{ _v1 }, v2{ _v2 }
-		{
-			const Vector3 edgeV0V1 = v1 - v0;
-			const Vector3 edgeV0V2 = v2 - v0;
-			normal = Vector3::Cross(edgeV0V1, edgeV0V2).Normalized();
-		}
+	//	Triangle(const XMFLOAT3& _v0, const XMFLOAT3& _v1, const XMFLOAT3& _v2, const XMFLOAT3& _normal):
+	//		v0{_v0}, v1{_v1}, v2{_v2}, normal{_normal.Normalized()}{}
 
-		Vector3 v0{};
-		Vector3 v1{};
-		Vector3 v2{};
+	//	Triangle(const Vector3& _v0, const Vector3& _v1, const Vector3& _v2) :
+	//		v0{ _v0 }, v1{ _v1 }, v2{ _v2 }
+	//	{
+	//		const XMFLOAT3 edgeV0V1 = v1 - v0;
+	//		const XMFLOAT3 edgeV0V2 = v2 - v0;
+	//		normal = Vector3::Cross(edgeV0V1, edgeV0V2).Normalized();
+	//	}
 
-		Vector3 normal{};
+	//	XMFLOAT3 v0{};
+	//	XMFLOAT3 v1{};
+	//	XMFLOAT3 v2{};
 
-		TriangleCullMode cullMode{};
-		unsigned char materialIndex{};
-	};
+	//	XMFLOAT3 normal{};
 
-	struct TriangleMesh
-	{
-		TriangleMesh() = default;
-		TriangleMesh(const std::vector<Vector3>& _positions, const std::vector<int>& _indices, TriangleCullMode _cullMode):
-		positions(_positions), indices(_indices), cullMode(_cullMode)
-		{
-			//Calculate Normals
-			CalculateNormals();
+	//	TriangleCullMode cullMode{};
+	//	unsigned char materialIndex{};
+	//};
 
-			//Update Transforms
-			UpdateTransforms();
-		}
+	//struct TriangleMesh
+	//{
+	//	TriangleMesh() = default;
+	//	TriangleMesh(const std::vector<Vector3>& _positions, const std::vector<int>& _indices, TriangleCullMode _cullMode):
+	//	positions(_positions), indices(_indices), cullMode(_cullMode)
+	//	{
+	//		//Calculate Normals
+	//		CalculateNormals();
 
-		TriangleMesh(const std::vector<Vector3>& _positions, const std::vector<int>& _indices, const std::vector<Vector3>& _normals, TriangleCullMode _cullMode) :
-			positions(_positions), indices(_indices), normals(_normals), cullMode(_cullMode)
-		{
-			UpdateTransforms();
-		}
+	//		//Update Transforms
+	//		UpdateTransforms();
+	//	}
 
-		std::vector<Vector3> positions{};
-		std::vector<Vector3> normals{};
-		std::vector<int> indices{};
-		unsigned char materialIndex{};
+	//	TriangleMesh(const std::vector<Vector3>& _positions, const std::vector<int>& _indices, const std::vector<Vector3>& _normals, TriangleCullMode _cullMode) :
+	//		positions(_positions), indices(_indices), normals(_normals), cullMode(_cullMode)
+	//	{
+	//		UpdateTransforms();
+	//	}
 
-		TriangleCullMode cullMode{TriangleCullMode::BackFaceCulling};
+	//	std::vector<Vector3> positions{};
+	//	std::vector<Vector3> normals{};
+	//	std::vector<int> indices{};
+	//	unsigned char materialIndex{};
 
-		Matrix rotationTransform{};
-		Matrix translationTransform{};
-		Matrix scaleTransform{};
+	//	TriangleCullMode cullMode{TriangleCullMode::BackFaceCulling};
 
-		std::vector<Vector3> transformedPositions{};
-		std::vector<Vector3> transformedNormals{};
+	//	Matrix rotationTransform{};
+	//	Matrix translationTransform{};
+	//	Matrix scaleTransform{};
 
-		void Translate(const Vector3& translation)
-		{
-			translationTransform = Matrix::CreateTranslation(translation);
-		}
+	//	std::vector<Vector3> transformedPositions{};
+	//	std::vector<Vector3> transformedNormals{};
 
-		void RotateY(float yaw)
-		{
-			rotationTransform = Matrix::CreateRotationY(yaw);
-		}
+	//	void Translate(const Vector3& translation)
+	//	{
+	//		translationTransform = Matrix::CreateTranslation(translation);
+	//	}
 
-		void Scale(const Vector3& scale)
-		{
-			scaleTransform = Matrix::CreateScale(scale);
-		}
+	//	void RotateY(float yaw)
+	//	{
+	//		rotationTransform = Matrix::CreateRotationY(yaw);
+	//	}
 
-		void AppendTriangle(const Triangle& triangle, bool ignoreTransformUpdate = false)
-		{
-			int startIndex = static_cast<int>(positions.size());
+	//	void Scale(const Vector3& scale)
+	//	{
+	//		scaleTransform = Matrix::CreateScale(scale);
+	//	}
 
-			positions.push_back(triangle.v0);
-			positions.push_back(triangle.v1);
-			positions.push_back(triangle.v2);
+	//	void AppendTriangle(const Triangle& triangle, bool ignoreTransformUpdate = false)
+	//	{
+	//		int startIndex = static_cast<int>(positions.size());
 
-			indices.push_back(startIndex);
-			indices.push_back(++startIndex);
-			indices.push_back(++startIndex);
+	//		positions.push_back(triangle.v0);
+	//		positions.push_back(triangle.v1);
+	//		positions.push_back(triangle.v2);
 
-			normals.push_back(triangle.normal);
+	//		indices.push_back(startIndex);
+	//		indices.push_back(++startIndex);
+	//		indices.push_back(++startIndex);
 
-			//Not ideal, but making sure all vertices are updated
-			if(!ignoreTransformUpdate)
-				UpdateTransforms();
-		}
+	//		normals.push_back(triangle.normal);
 
-		void CalculateNormals()
-		{
-			assert(false && "No Implemented Yet!");
-		}
+	//		//Not ideal, but making sure all vertices are updated
+	//		if(!ignoreTransformUpdate)
+	//			UpdateTransforms();
+	//	}
 
-		void UpdateTransforms()
-		{
-			assert(false && "No Implemented Yet!");
-			//Calculate Final Transform 
-			//const auto finalTransform = ...
+	//	void CalculateNormals()
+	//	{
+	//		assert(false && "No Implemented Yet!");
+	//	}
 
-			//Transform Positions (positions > transformedPositions)
-			//...
+	//	void UpdateTransforms()
+	//	{
+	//		assert(false && "No Implemented Yet!");
+	//		//Calculate Final Transform 
+	//		//const auto finalTransform = ...
 
-			//Transform Normals (normals > transformedNormals)
-			//...
-		}
-	};
+	//		//Transform Positions (positions > transformedPositions)
+	//		//...
+
+	//		//Transform Normals (normals > transformedNormals)
+	//		//...
+	//	}
+	//};
 #pragma endregion
 
 
@@ -158,8 +160,8 @@ namespace dae
 
 	struct Light
 	{
-		Vector3 origin{};
-		Vector3 direction{};
+		XMFLOAT3 origin{};
+		XMFLOAT3 direction{};
 		ColorRGB color{};
 		float intensity{};
 
@@ -169,8 +171,8 @@ namespace dae
 #pragma region MISC
 	struct Ray
 	{
-		Vector3 origin{};
-		Vector3 direction{};
+		XMFLOAT3 origin{};
+		XMFLOAT3 direction{};
 
 		float min{ 0.0001f };
 		float max{ FLT_MAX };
@@ -178,8 +180,8 @@ namespace dae
 
 	struct HitRecord
 	{
-		Vector3 origin{};
-		Vector3 normal{};
+		XMFLOAT3 origin{};
+		XMFLOAT3 normal{};
 		float t = FLT_MAX;
 
 		bool didHit{ false };
