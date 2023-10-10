@@ -57,7 +57,7 @@ void Renderer::RenderChunk(int startPx, int endPx, Scene* pScene, const std::vec
 					XMFLOAT3 lightDirection{ LightUtils::GetDirectionToLight(light, offsetPosition) };
 					auto lightDirectionVector{ XMLoadFloat3(&lightDirection) };
 					XMFLOAT3 lightDistance{  };
-					XMStoreFloat3(&lightDistance, XMVector3Normalize(lightDirectionVector));
+					XMStoreFloat3(&lightDistance, XMVector3Length(lightDirectionVector));
 
 
 
@@ -79,8 +79,6 @@ void Renderer::RenderChunk(int startPx, int endPx, Scene* pScene, const std::vec
 					case LightingMode::ObservedArea: //LambertCosine
 					{
 						auto lightNormalAngle = XMMax(XMVectorGetX(XMVector3Dot(closestHitNormal, lightDirectionVector)), 0.0f) ;
-
-						//const auto lightNormalAngle{ std::max(Vector3::Dot(closestHit.normal, lightDirection), 0.0f) };
 						finalColor += ColorRGB{ lightNormalAngle, lightNormalAngle, lightNormalAngle };
 						break;
 					}

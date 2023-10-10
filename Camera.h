@@ -1,5 +1,6 @@
 #pragma once
 #include <cassert>
+#include <iostream>
 #include <SDL_keyboard.h>
 #include <SDL_mouse.h>
 #include "Math.h"
@@ -109,6 +110,8 @@ namespace dae
 
 		void GetKeyboardInput(const uint8_t* keyboardState, float deltaTime)
 		{
+
+			
 			const auto forwardV = XMLoadFloat3(&forward);
 			const auto rightV = XMLoadFloat3(&right);
 
@@ -117,6 +120,11 @@ namespace dae
 
 			XMVECTOR directionV{XMLoadFloat3(&direction)};
 
+			std::cout << "ForwardSpeed : " <<  (forward.x * velocity * deltaTime) << '\n';
+			std::cout << "ForwardSpeed y: " <<  (forward.y * velocity * deltaTime) << '\n';
+			std::cout << "ForwardSpeed z: " <<  (forward.z * velocity * deltaTime) << '\n';
+			std::cout <<  '\n';
+			
 			directionV += keyboardState[SDL_SCANCODE_W] ? forwardSpeed : XMVectorZero();
 			directionV += keyboardState[SDL_SCANCODE_S] ? -forwardSpeed : XMVectorZero();
 			directionV += keyboardState[SDL_SCANCODE_D] ? rightSpeed : XMVectorZero();
@@ -124,12 +132,17 @@ namespace dae
 
 
 			XMStoreFloat3(&direction, directionV);
+
+			std::cout << "Direction : " << (direction.x * velocity * deltaTime) << '\n';
+			std::cout << "Direction y: " << (direction.y * velocity * deltaTime) << '\n';
+			std::cout << "Direction z: " << (direction.z * velocity * deltaTime) << '\n';
+			std::cout << '\n';
 		}
 
 		void HandleMouseInput(uint32_t mouseState, const XMVECTOR& mouseF, float deltaTime)
 		{
-			const auto y = XMVectorGetY(mouseF);
 			const auto x = XMVectorGetX(mouseF);
+			const auto y = XMVectorGetY(mouseF);
 			const auto forwardV = XMLoadFloat3(&forward);
 			const auto upV = XMLoadFloat3(&up);
 

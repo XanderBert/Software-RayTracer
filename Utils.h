@@ -22,7 +22,7 @@ namespace dae
 			const auto sphereOrigin = XMLoadFloat3(&sphere.origin);
 
 
-			const XMVECTOR oc = XMVector3Normalize(rayOrigin - sphereOrigin);
+			const XMVECTOR oc = (rayOrigin - sphereOrigin);
 
 			const float a = XMVectorGetX(XMVector3Dot(rayDirection, rayDirection));
 			const float b = 2.0f * XMVectorGetX(XMVector3Dot(rayDirection, oc));
@@ -51,7 +51,7 @@ namespace dae
 					hitRecord.didHit = true;
 
 					XMStoreFloat3(&hitRecord.origin, rayOrigin + XMVectorScale(rayDirection, root));
-					XMStoreFloat3(&hitRecord.normal,(hitRecordOrigin - sphereOrigin));
+					XMStoreFloat3(&hitRecord.normal, XMVector3Normalize(hitRecordOrigin - sphereOrigin));
 
 					hitRecord.materialIndex = sphere.materialIndex;
 				}
