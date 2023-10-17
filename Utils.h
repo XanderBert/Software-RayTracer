@@ -2,7 +2,6 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
-#include <xmmintrin.h>
 #include "Math.h"
 #include "DataTypes.h"
 
@@ -99,10 +98,57 @@ namespace dae
 #pragma endregion
 #pragma region Triangle HitTest
 		//TRIANGLE HIT-TESTS
-		inline bool HitTest_Triangle(const Triangle& /*triangle*/, const Ray& /*ray*/, HitRecord& /*hitRecord*/, bool /*ignoreHitRecord*/ = false)
+		inline bool HitTest_Triangle(const Triangle& triangle, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W5
-			assert(false && "No Implemented Yet!");
+			const auto edge1 = triangle.v1 - triangle.v0;
+			const auto edge2 = triangle.v2 - triangle.v0;
+
+			const auto h = Vector3::Cross(ray.direction, edge2);
+			const auto determinant = Vector3::Dot(edge1, h);
+
+
+			//if backface culling is active, and the determinant is negative, return false.
+			//When determinant is negative, the triangle is facing the other way.
+			if (triangle.cullMode == TriangleCullMode::BackFaceCulling && determinant < 0.0f) return false;
+			if(triangle.cullMode == TriangleCullMode::FrontFaceCulling && determinant > 0.0f) return false;
+
+
+			//If the ray is parallel  with the triangle, return;
+			if( fabs(determinant) < FLT_EPSILON ) return false;
+
+
+			const auto inverseDeterminant = 1.0f / determinant;
+			const auto tVector = ray.origin - triangle.v0;
+
+			const float u = inverseDeterminant * Vector3::Dot(tVector, h);
+
+			if (u < 0.0f || u > 1.0f) return false;
+
+			const auto q = Vector3::Cross(tVector, edge1);
+			const auto v = inverseDeterminant * Vector3::Dot(ray.direction, q);
+
+
+			if (v < 0.0 || u + v > 1.0) return false;
+
+			//Calculate where the intersection happens on the line.
+			const auto t = inverseDeterminant * Vector3::Dot(edge2, q);
+
+			if (t > ray.min)
+			{
+				if (!ignoreHitRecord && t < hitRecord.t)
+				{
+					const auto triangleNormal = Vector3::Cross(edge1, edge2).Normalized();
+
+					hitRecord.t = t;
+					hitRecord.didHit = true;
+					hitRecord.materialIndex = triangle.materialIndex;
+					hitRecord.origin = ray.origin + (t * ray.direction);
+					hitRecord.normal = triangleNormal;
+				}
+
+				return true;
+			}
+
 			return false;
 		}
 

@@ -48,6 +48,10 @@ namespace dae
 		std::vector<Plane> m_PlaneGeometries{};
 		std::vector<Sphere> m_SphereGeometries{};
 		std::vector<TriangleMesh> m_TriangleMeshGeometries{};
+
+		//Todo chagne because this is a temp
+		std::vector<Triangle> m_Triangles{};
+
 		std::vector<Light> m_Lights{};
 		std::vector<Material*> m_Materials{};
 
@@ -99,7 +103,7 @@ namespace dae
 
 
 	//+++++++++++++++++++++++++++++++++++++++++
-	//WEEK 1 Test Scene
+	//WEEK 3 Test Scene
 	class Scene_W3 final : public Scene
 	{
 	public:
@@ -112,5 +116,25 @@ namespace dae
 		Scene_W3& operator=(Scene_W3&&) noexcept = delete;
 
 		void Initialize() override;
+	};
+
+
+
+	//+++++++++++++++++++++++++++++++++++++++++
+	//WEEK 4 Test Scene
+	class Scene_W4 final : public Scene
+	{
+	public:
+		Scene_W4() = default;
+		~Scene_W4() override = default;
+
+		Scene_W4(const Scene_W4&) = delete;
+		Scene_W4(Scene_W4&&) noexcept = delete;
+		Scene_W4& operator=(const Scene_W4&) = delete;
+		Scene_W4& operator=(Scene_W4&&) noexcept = delete;
+
+		void Initialize() override;
+	private:
+		//std::vector<TriangleMesh*> m_Meshes{};
 	};
 }
