@@ -1,8 +1,6 @@
 #include "Vector3.h"
-
-#include <cassert>
-
 #include "Vector4.h"
+#include <cassert>
 #include <cmath>
 
 namespace dae {
@@ -70,6 +68,22 @@ namespace dae {
 	{
 		return v1 - (2.f * Vector3::Dot(v1, v2) * v2);
 	}
+
+	Vector3 Vector3::Lico(float f1, const Vector3& v1, float f2, const Vector3& v2, float f3, const Vector3& v3)
+	{
+		return (v1 * f1 + v2 * f2 + v3 * f3).Normalized();
+	}
+
+	Vector3 Vector3::Min(const Vector3& a, const Vector3& b)
+	{
+		return { std::min(a.x, b.x), std::min(a.y, b.y), std::min(a.z, b.z) };
+	}
+
+	Vector3 Vector3::Max(const Vector3& a, const Vector3& b)
+	{
+		return { std::max(a.x, b.x), std::max(a.y, b.y), std::max(a.z, b.z) };
+	}
+
 
 	Vector4 Vector3::ToPoint4() const
 	{

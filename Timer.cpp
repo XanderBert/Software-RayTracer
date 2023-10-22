@@ -1,9 +1,6 @@
 #include "Timer.h"
-
 #include <iostream>
 #include <numeric>
-
-#include <iostream>
 #include <fstream>
 
 #include "SDL.h"
@@ -59,7 +56,7 @@ void Timer::StartBenchmark(int numFrames)
 	m_BenchmarkCurrFrame = 0;
 
 	m_Benchmarks.clear();
-	m_Benchmarks.resize(m_BenchmarkFrames);
+	m_Benchmarks.reserve(m_BenchmarkFrames);
 
 	std::cout << "**BENCHMARK STARTED**\n";
 }

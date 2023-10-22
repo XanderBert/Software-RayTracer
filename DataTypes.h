@@ -1,6 +1,5 @@
 #pragma once
 #include <cassert>
-
 #include "Math.h"
 #include "vector"
 
@@ -11,16 +10,14 @@ namespace dae
 	{
 		Vector3 origin{};
 		float radius{};
-
 		unsigned char materialIndex{ 0 };
 	};
 
 	struct Plane
 	{
+		unsigned char materialIndex{ 0 };
 		Vector3 origin{};
 		Vector3 normal{};
-
-		unsigned char materialIndex{ 0 };
 	};
 
 	enum class TriangleCullMode
@@ -35,12 +32,13 @@ namespace dae
 		Triangle() = default;
 		Triangle(const Vector3& _v0, const Vector3& _v1, const Vector3& _v2, const Vector3& _normal):
 			v0{_v0}, v1{_v1}, v2{_v2}, normal{_normal.Normalized()}{}
-
 		Triangle(const Vector3& _v0, const Vector3& _v1, const Vector3& _v2) :
 			v0{ _v0 }, v1{ _v1 }, v2{ _v2 }
 		{
 			const Vector3 edgeV0V1 = v1 - v0;
 			const Vector3 edgeV0V2 = v2 - v0;
+
+			//Calculate the normal
 			normal = Vector3::Cross(edgeV0V1, edgeV0V2).Normalized();
 		}
 
@@ -57,18 +55,21 @@ namespace dae
 	struct TriangleMesh
 	{
 		TriangleMesh() = default;
-		TriangleMesh(const std::vector<Vector3>& _positions, const std::vector<int>& _indices, TriangleCullMode _cullMode):
-		positions(_positions), indices(_indices), cullMode(_cullMode)
-		{
-			//Calculate Normals
-			CalculateNormals();
 
-			//Update Transforms
+		TriangleMesh(const std::vector<Vector3>& _positions, const std::vector<int>& _indices, TriangleCullMode _cullMode)
+		:	positions(_positions)
+		,	indices(_indices)
+		,	cullMode(_cullMode)
+		{
+			CalculateNormals();
 			UpdateTransforms();
 		}
 
-		TriangleMesh(const std::vector<Vector3>& _positions, const std::vector<int>& _indices, const std::vector<Vector3>& _normals, TriangleCullMode _cullMode) :
-			positions(_positions), indices(_indices), normals(_normals), cullMode(_cullMode)
+		TriangleMesh(const std::vector<Vector3>& _positions, const std::vector<int>& _indices, const std::vector<Vector3>& _normals, TriangleCullMode _cullMode)
+		:	positions(_positions)
+		,	normals(_normals)
+		,	indices(_indices)
+		,	cullMode(_cullMode)
 		{
 			UpdateTransforms();
 		}
@@ -86,7 +87,7 @@ namespace dae
 
 		std::vector<Vector3> transformedPositions{};
 		std::vector<Vector3> transformedNormals{};
-
+		
 		void Translate(const Vector3& translation)
 		{
 			translationTransform = Matrix::CreateTranslation(translation);
@@ -104,51 +105,120 @@ namespace dae
 
 		void AppendTriangle(const Triangle& triangle, bool ignoreTransformUpdate = false)
 		{
+			//Get the last index of the last added vertex
 			int startIndex = static_cast<int>(positions.size());
 
-			positions.push_back(triangle.v0);
-			positions.push_back(triangle.v1);
-			positions.push_back(triangle.v2);
+			//Add each vertex to the positions
+			positions.emplace_back(triangle.v0);
+			positions.emplace_back(triangle.v1);
+			positions.emplace_back(triangle.v2);
 
-			indices.push_back(startIndex);
-			indices.push_back(++startIndex);
-			indices.push_back(++startIndex);
+	
+			//Add the indices
+			indices.emplace_back(startIndex);
+			++startIndex;
+			indices.emplace_back(startIndex);
+			++startIndex;
+			indices.emplace_back(startIndex);
 
-			normals.push_back(triangle.normal);
 
-			//Not ideal, but making sure all vertices are updated
-			if(!ignoreTransformUpdate)
-				UpdateTransforms();
+			//Add the normal
+			normals.emplace_back(triangle.normal);
+
+			//Set the transforms
+			if(!ignoreTransformUpdate) UpdateTransforms();
 		}
 
 		void CalculateNormals()
 		{
-			assert(false && "No Implemented Yet!");
+			normals.clear();
+			normals.reserve(GetAmountOfTriangles());
+
+			//Go over all triangles
+			for (size_t i{}; i < indices.size(); i += 3)
+			{
+				//Get the position of each vertex in the triangle
+				const Vector3& v0 = positions[indices[i]];
+				const Vector3& v1 = positions[indices[i + 1]];
+				const Vector3& v2 = positions[indices[i + 2]];
+
+				//Create 2 edges of the triangle
+				const Vector3 edgeV0V1 = v1 - v0;
+				const Vector3 edgeV0V2 = v2 - v0;
+
+				//Calculate the normal
+				const auto normal = Vector3::Cross(edgeV0V1, edgeV0V2).Normalized();
+				
+				normals.emplace_back(normal);
+			}
 		}
 
 		void UpdateTransforms()
 		{
-			assert(false && "No Implemented Yet!");
-			//Calculate Final Transform 
-			//const auto finalTransform = ...
+			//Create the final transformation matrix
+			const auto finalTransformation{ scaleTransform * rotationTransform * translationTransform };
+			
+			//Add the positions
+			transformedPositions.clear();
+			transformedPositions.reserve(positions.size());
+			for (const auto& position : positions)
+			{
+				//Transform the point with the final transformation matrix and add it to the transformed positions
+				transformedPositions.emplace_back(finalTransformation.TransformPoint(position));
+			}
 
-			//Transform Positions (positions > transformedPositions)
-			//...
 
-			//Transform Normals (normals > transformedNormals)
-			//...
+			//Add the normals
+			transformedNormals.clear();
+			transformedNormals.reserve(normals.size());
+			for (const Vector3& normal : normals)
+			{
+				//Transform the normal with the final transformation matrix and add it to the transformed normals
+				transformedNormals.emplace_back(finalTransformation.TransformVector(normal).Normalized());
+			}
 		}
+
+		Triangle GetTriangleByIndex(size_t triangleIndex) const;
+		Triangle GetTriangleByVertexIndex(size_t vertexIndex) const;
+		size_t GetAmountOfTriangles() const { return (indices.size() / 3); }
+		
 	};
+
+	inline Triangle TriangleMesh::GetTriangleByIndex(size_t triangleIndex) const
+	{
+		//Check if the index is in range
+		if (triangleIndex < (indices.size() / 3))
+		{
+			const size_t vertexIndex = triangleIndex * 3;
+			const auto normal = transformedNormals[triangleIndex];
+			auto triangle = Triangle
+			{
+				transformedPositions[indices[vertexIndex]],
+				transformedPositions[indices[vertexIndex + 1]],
+				transformedPositions[indices[vertexIndex + 2]],
+				normal
+			};
+
+			triangle.materialIndex = materialIndex;
+			triangle.cullMode = cullMode;
+			
+			return triangle;
+
+		}
+
+		assert(false && "Triangle index out of bounds");
+		//throw std::out_of_range("Triangle index is out of range.");
+		return Triangle{};
+	}
+
+	inline Triangle TriangleMesh::GetTriangleByVertexIndex(size_t vertexIndex) const
+	{
+			//get the triangle that is inside the vertexRange of that index [0-3]
+			const auto triangleIndex = (vertexIndex - (vertexIndex % 3) / 3);
+			return GetTriangleByIndex(triangleIndex);
+	}
+
 #pragma endregion
-
-
-
-
-
-
-
-
-
 #pragma region LIGHT
 	enum class LightType
 	{

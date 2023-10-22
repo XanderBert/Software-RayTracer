@@ -1,5 +1,4 @@
 #pragma once
-#include <cassert>
 #include <fstream>
 #include <iostream>
 #include "Math.h"
@@ -159,12 +158,26 @@ namespace dae
 		}
 #pragma endregion
 #pragma region TriangeMesh HitTest
-		inline bool HitTest_TriangleMesh(const TriangleMesh& /*mesh*/, const Ray& /*ray*/, HitRecord& /*hitRecord*/, bool /*ignoreHitRecord*/ = false)
+		inline bool HitTest_TriangleMesh(const TriangleMesh& mesh, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			//todo W5
-			assert(false && "No Implemented Yet!");
-			return false;
+			// Current closest hit
+			HitRecord tempHit{};
+			bool hasHit{};
+
+			for (size_t triangleIdx{}; triangleIdx < mesh.GetAmountOfTriangles(); ++triangleIdx)
+			{
+				auto triangle = mesh.GetTriangleByIndex(triangleIdx);
+
+				if (!HitTest_Triangle(triangle, ray, tempHit, ignoreHitRecord)) continue;
+				if (ignoreHitRecord) return true;
+				if (!ignoreHitRecord && tempHit.t < hitRecord.t) hitRecord = tempHit;
+
+				hasHit = true;
+			}
+
+			return hasHit;
 		}
+		
 
 		inline bool HitTest_TriangleMesh(const TriangleMesh& mesh, const Ray& ray)
 		{

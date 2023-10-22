@@ -117,7 +117,7 @@ namespace dae
 			const auto divisor{ 1.0f / (4.0f * Vector3::Dot(v, hitRecord.normal) * Vector3::Dot(l, hitRecord.normal)) };
 			const ColorRGB specular{ (fresnel * geometryShadows * normalDistribution) * divisor };
 
-			ColorRGB lambert{};
+			ColorRGB lambert;
 			if (m_Metalness < FLT_EPSILON)
 			{
 				lambert = BRDF::Lambert({ 1.0f - fresnel.r, 1.0f - fresnel.g,  1.0f - fresnel.b }, m_Albedo);

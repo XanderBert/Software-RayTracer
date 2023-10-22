@@ -1,8 +1,6 @@
 #include "Vector4.h"
-
-#include <cassert>
-
 #include "Vector3.h"
+#include <cassert>
 #include <cmath>
 
 namespace dae

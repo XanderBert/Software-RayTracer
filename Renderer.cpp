@@ -23,6 +23,9 @@ Renderer::Renderer(SDL_Window* pWindow) :
 	SDL_GetWindowSize(pWindow, &m_Width, &m_Height);
 	m_pBufferPixels = static_cast<uint32_t*>(m_pBuffer->pixels);
 	m_AspectRatio = static_cast<float>(m_Width) / static_cast<float>(m_Height);
+
+	//Set the lighting mode to the first element
+	m_LightingMode = LightingMode::Combined;
 }
 
 void Renderer::RenderChunk(int startPx, int endPx, Scene* pScene, const std::vector<Material*>& materials) const

@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include <vector>
-
 #include "Math.h"
 #include "DataTypes.h"
 #include "Camera.h"
@@ -48,10 +47,6 @@ namespace dae
 		std::vector<Plane> m_PlaneGeometries{};
 		std::vector<Sphere> m_SphereGeometries{};
 		std::vector<TriangleMesh> m_TriangleMeshGeometries{};
-
-		//Todo chagne because this is a temp
-		std::vector<Triangle> m_Triangles{};
-
 		std::vector<Light> m_Lights{};
 		std::vector<Material*> m_Materials{};
 
@@ -135,6 +130,6 @@ namespace dae
 
 		void Initialize() override;
 	private:
-		//std::vector<TriangleMesh*> m_Meshes{};
+		std::vector<TriangleMesh*> m_Meshes{};
 	};
 }
