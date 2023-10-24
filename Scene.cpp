@@ -253,9 +253,9 @@ namespace dae {
 		const auto matCT_GraySmoothPlastic = AddMaterial(new Material_CookTorrence({ .75f, .75f, .75f }, .0f, .1f));
 
 		const auto matLambert_GrayBlue = AddMaterial(new Material_Lambert({ .49f, 0.57f, 0.57f }, 1.f));
-		//const auto matLambert_White = AddMaterial(new Material_Lambert(colors::White, 1.f));
+		const auto matLambert_White = AddMaterial(new Material_Lambert(colors::White, 1.f));
 
-		const auto matLambertPhong3 = AddMaterial(new Material_CookTorrence(colors::Blue, 1.f, 0.1f));
+		//const auto matLambertPhong3 = AddMaterial(new Material_CookTorrence(colors::Blue, 1.f, 0.1f));
 
 		AddPlane(Vector3{ 0.f, 0.f, 10.f }, Vector3{ 0.f, 0.f, -1.f }, matLambert_GrayBlue); //BACK
 		AddPlane(Vector3{ 0.f, 0.f, 0.f }, Vector3{ 0.f, 1.f, 0.f }, matLambert_GrayBlue); //BOTTOM
@@ -278,9 +278,9 @@ namespace dae {
 		//baseTriangle.materialIndex = matCT_GrayRoughMetal;
 		//m_Triangles.emplace_back(baseTriangle);
 
-
+		//Bunny
 		m_Meshes.reserve(1);
-		m_Meshes.emplace_back(AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambertPhong3));
+		m_Meshes.emplace_back(AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_White));
 		Utils::ParseOBJ("Resources/lowpoly_bunny.obj", m_Meshes[0]->positions, m_Meshes[0]->normals, m_Meshes[0]->indices);
 		m_Meshes[0]->UpdateTransforms();
 
@@ -302,7 +302,25 @@ namespace dae {
 
 		AddPointLight(Vector3{ 0.f, 5.f, 5.f }, 50.f, ColorRGB{ 1.f, .61f, .45f }); //Backlight
 		AddPointLight(Vector3{ -2.5f, 5.f, -5.f }, 70.f, ColorRGB{ 1.f, .8f, .45f }); //Front Light Left
-		AddPointLight(Vector3{ 2.5f, 2.5f, -5.f }, 50.f, ColorRGB{ .34f, .47f, .68f });
+		//AddPointLight(Vector3{ 2.5f, 2.5f, -5.f }, 50.f, ColorRGB{ .34f, .47f, .68f });
+	}
+
+	void Scene_W4_Bunny::Initialize()
+	{
+		sceneName = "Bunny Scene";
+		m_Camera.origin = { 0.f, 0.2f, -9.f };
+		m_Camera.fovAngle = tan(45.f / 2.f);
+		const auto matLambert_White = AddMaterial(new Material_Lambert(colors::White, 1.f));
+		const auto matLambert_GrayBlue = AddMaterial(new Material_Lambert({ .49f, 0.57f, 0.57f }, 1.f));
+			
+		AddPointLight(Vector3{ -2.5f, 5.f, -5.f }, 70.f, ColorRGB{ 1.f, .8f, .45f }); //Front Light Left
+		AddPlane(Vector3{ 0.f, 0.f, 0.f }, Vector3{ 0.f, 1.f, 0.f }, matLambert_GrayBlue); //BOTTOM
+		//Bunny
+		m_Meshes.reserve(1);
+		m_Meshes.emplace_back(AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_White));
+		Utils::ParseOBJ("Resources/lowpoly_bunny.obj", m_Meshes[0]->positions, m_Meshes[0]->normals, m_Meshes[0]->indices);
+		m_Meshes[0]->UpdateTransforms();
+		
 	}
 
 #pragma endregion

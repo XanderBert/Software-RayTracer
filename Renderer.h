@@ -8,7 +8,11 @@ namespace dae
 {
 	class Scene;
 	class Material;
+
+	struct Ray;
+	struct Vector2;
 	struct Vector3;
+	struct Matrix;
 	struct Camera;
 
 	class Renderer final
@@ -30,12 +34,15 @@ namespace dae
 
 	private:
 		Vector3 GetRayDirection(float x, float y, Camera* pCamera) const;
-		void RenderChunk(int startPx, int endPx, Scene* pScene, const std::vector<Material*>& materials) const;
-
+		void RenderPixel(Scene* pScene, const Vector2& rayLocation) const;
+		void SetupPixelIndices();
+		
 		SDL_Window* m_pWindow{};
 		SDL_Surface* m_pBuffer{};
 		uint32_t* m_pBufferPixels{};
-
+		uint32_t m_amountOfPixels{};
+		std::vector<Vector2> m_PixelIndices{};
+		
 		float m_AspectRatio{};
 		static constexpr float m_RayOffset{ 0.001f };
 
