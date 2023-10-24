@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include <vector>
+
+#include "BVHNode.h"
 #include "Math.h"
 #include "DataTypes.h"
 #include "Camera.h"
@@ -33,7 +35,7 @@ namespace dae
 		}
 
 		Camera& GetCamera() { return m_Camera; }
-		void GetClosestHit(const Ray& ray, HitRecord& closestHit) const;
+		void GetClosestHit(const Ray& ray, HitRecord& closestHit);
 		bool DoesHit(const Ray& ray) const;
 
 		const std::vector<Plane>& GetPlaneGeometries() const { return m_PlaneGeometries; }
@@ -59,6 +61,8 @@ namespace dae
 		Light* AddPointLight(const Vector3& origin, float intensity, const ColorRGB& color);
 		Light* AddDirectionalLight(const Vector3& direction, float intensity, const ColorRGB& color);
 		unsigned char AddMaterial(Material* pMaterial);
+		
+		BVH m_BVH{};
 	};
 
 
@@ -147,6 +151,7 @@ namespace dae
 		Scene_W4_Bunny& operator=(Scene_W4_Bunny&&) noexcept = delete;
 
 		void Initialize() override;
+	
 	private:
 		std::vector<TriangleMesh*> m_Meshes{};
 	};

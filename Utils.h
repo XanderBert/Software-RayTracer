@@ -247,10 +247,9 @@ namespace dae
 				//read the first word of the string, use the >> operator (istream::operator>>) 
 				file >> sCommand;
 				//use conditional statements to process the different commands	
-				if (sCommand == "#")
-				{
-					// Ignore Comment
-				}
+				if (sCommand == "#"){}
+				if(sCommand == "vn"){}
+				if(sCommand == "vt"){}
 				else if (sCommand == "v")
 				{
 					//Vertex

@@ -31,20 +31,24 @@ namespace dae
 	{
 		Triangle() = default;
 		Triangle(const Vector3& _v0, const Vector3& _v1, const Vector3& _v2, const Vector3& _normal):
-			v0{_v0}, v1{_v1}, v2{_v2}, normal{_normal.Normalized()}{}
+			v0{_v0}, v1{_v1}, v2{_v2}, normal{_normal.Normalized()}{ center = (v0 + v1 + v2) / 3.0f;}
 		Triangle(const Vector3& _v0, const Vector3& _v1, const Vector3& _v2) :
 			v0{ _v0 }, v1{ _v1 }, v2{ _v2 }
 		{
 			const Vector3 edgeV0V1 = v1 - v0;
 			const Vector3 edgeV0V2 = v2 - v0;
-
+			
 			//Calculate the normal
 			normal = Vector3::Cross(edgeV0V1, edgeV0V2).Normalized();
+
+			//calculate center
+			center = (v0 + v1 + v2) / 3.0f;
 		}
 
 		Vector3 v0{};
 		Vector3 v1{};
 		Vector3 v2{};
+		Vector3 center{};
 
 		Vector3 normal{};
 
@@ -191,6 +195,7 @@ namespace dae
 		{
 			const size_t vertexIndex = triangleIndex * 3;
 			const auto normal = transformedNormals[triangleIndex];
+
 			auto triangle = Triangle
 			{
 				transformedPositions[indices[vertexIndex]],
@@ -203,7 +208,6 @@ namespace dae
 			triangle.cullMode = cullMode;
 			
 			return triangle;
-
 		}
 
 		assert(false && "Triangle index out of bounds");

@@ -27,7 +27,7 @@ namespace dae {
 		m_Materials.clear();
 	}
 
-	void dae::Scene::GetClosestHit(const Ray& ray, HitRecord& closestHit) const
+	void dae::Scene::GetClosestHit(const Ray& ray, HitRecord& closestHit)
 	{
 		for (const auto& sphere : m_SphereGeometries)
 		{
@@ -39,10 +39,13 @@ namespace dae {
 			GeometryUtils::HitTest_Plane(plane, ray, closestHit);
 		}
 
-		for(const auto& triangle : m_TriangleMeshGeometries)
-		{
-			GeometryUtils::HitTest_TriangleMesh(triangle, ray, closestHit);
-		}
+		m_BVH.IntersectBVH(ray, 0, closestHit);
+		// for(const auto& triangle : m_TriangleMeshGeometries)
+		// {
+		// 	GeometryUtils::HitTest_TriangleMesh(triangle, ray, closestHit);
+		// }
+
+		
 	}
 
 	bool Scene::DoesHit(const Ray& ray) const
@@ -271,38 +274,30 @@ namespace dae {
 		AddSphere(Vector3{ 1.75f, 3.f, 0.f }, .75f, matCT_GraySmoothPlastic);
 
 		//CW Winding Order!
-		//Triangle baseTriangle = { Vector3(-.75f, 1.5f, 0.f), Vector3(.75f, 0.f, 0.f), Vector3(-.75f, 0.f, 0.f) };
+		Triangle baseTriangle = { Vector3(-.75f, 1.5f, 0.f), Vector3(.75f, 0.f, 0.f), Vector3(-.75f, 0.f, 0.f) };
 		
+		baseTriangle.cullMode = TriangleCullMode::NoCulling;
+		baseTriangle.materialIndex = matCT_GrayRoughMetal;
 
-		//baseTriangle.cullMode = TriangleCullMode::NoCulling;
-		//baseTriangle.materialIndex = matCT_GrayRoughMetal;
-		//m_Triangles.emplace_back(baseTriangle);
-
-		//Bunny
-		m_Meshes.reserve(1);
+		m_Meshes.reserve(3);
+		m_Meshes.emplace_back(AddTriangleMesh(TriangleCullMode::FrontFaceCulling, matLambert_White));
+		m_Meshes.back()->AppendTriangle(baseTriangle, true);
+		m_Meshes.back()->Translate({ -1.75f,4.5f,0.f });
+		m_Meshes.back()->UpdateTransforms();
+		
 		m_Meshes.emplace_back(AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_White));
-		Utils::ParseOBJ("Resources/lowpoly_bunny.obj", m_Meshes[0]->positions, m_Meshes[0]->normals, m_Meshes[0]->indices);
-		m_Meshes[0]->UpdateTransforms();
+		m_Meshes.back()->AppendTriangle(baseTriangle, true);
+		m_Meshes.back()->Translate({ 0.f,4.5f,0.f });
+		m_Meshes.back()->UpdateTransforms();
 
-
-		//m_Meshes[0]->AppendTriangle(baseTriangle, true);
-		//m_Meshes[0]->Translate({ -1.75f,4.5f,0.f });
-
-
-
-		//m_Meshes[1] = AddTriangleMesh(TriangleCullMode::FrontFaceCulling, matLambert_White);
-		//m_Meshes[1]->AppendTriangle(baseTriangle, true);
-		//m_Meshes[1]->Translate({ 0.f,4.5f,0.f });
-		//m_Meshes[1]->UpdateTransforms();
-
-		//m_Meshes[2] = AddTriangleMesh(TriangleCullMode::NoCulling, matLambert_White);
-		//m_Meshes[2]->AppendTriangle(baseTriangle, true);
-		//m_Meshes[2]->Translate({ 1.75f,4.5f,0.f });
-		//m_Meshes[2]->UpdateTransforms();
+		m_Meshes.emplace_back(AddTriangleMesh(TriangleCullMode::NoCulling, matLambert_White));
+		m_Meshes.back()->AppendTriangle(baseTriangle, true);
+		m_Meshes.back()->Translate({ 1.75f,4.5f,0.f });
+		m_Meshes.back()->UpdateTransforms();
 
 		AddPointLight(Vector3{ 0.f, 5.f, 5.f }, 50.f, ColorRGB{ 1.f, .61f, .45f }); //Backlight
 		AddPointLight(Vector3{ -2.5f, 5.f, -5.f }, 70.f, ColorRGB{ 1.f, .8f, .45f }); //Front Light Left
-		//AddPointLight(Vector3{ 2.5f, 2.5f, -5.f }, 50.f, ColorRGB{ .34f, .47f, .68f });
+		AddPointLight(Vector3{ 2.5f, 2.5f, -5.f }, 50.f, ColorRGB{ .34f, .47f, .68f });
 	}
 
 	void Scene_W4_Bunny::Initialize()
@@ -315,12 +310,14 @@ namespace dae {
 			
 		AddPointLight(Vector3{ -2.5f, 5.f, -5.f }, 70.f, ColorRGB{ 1.f, .8f, .45f }); //Front Light Left
 		AddPlane(Vector3{ 0.f, 0.f, 0.f }, Vector3{ 0.f, 1.f, 0.f }, matLambert_GrayBlue); //BOTTOM
+
 		//Bunny
 		m_Meshes.reserve(1);
 		m_Meshes.emplace_back(AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_White));
 		Utils::ParseOBJ("Resources/lowpoly_bunny.obj", m_Meshes[0]->positions, m_Meshes[0]->normals, m_Meshes[0]->indices);
 		m_Meshes[0]->UpdateTransforms();
-		
+
+		m_BVH.BuildBVH(*m_Meshes[0]);
 	}
 
 #pragma endregion

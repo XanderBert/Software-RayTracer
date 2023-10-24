@@ -96,6 +96,7 @@ xcopy "$(SolutionDir)..\lib\vld\x64\Microsoft.DTfW.DHL.manifest" "$(OutDir)" /y 
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BRDFs.h" />
+    <ClInclude Include="BVHNode.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ColorRGB.h" />
     <ClInclude Include="DataTypes.h" />
@@ -112,6 +113,7 @@ xcopy "$(SolutionDir)..\lib\vld\x64\Microsoft.DTfW.DHL.manifest" "$(OutDir)" /y 
     <ClInclude Include="Vector4.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BVHNode.cpp" />
     <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Scene.cpp" />
