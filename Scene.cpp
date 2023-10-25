@@ -298,6 +298,8 @@ namespace dae {
 		AddPointLight(Vector3{ 0.f, 5.f, 5.f }, 50.f, ColorRGB{ 1.f, .61f, .45f }); //Backlight
 		AddPointLight(Vector3{ -2.5f, 5.f, -5.f }, 70.f, ColorRGB{ 1.f, .8f, .45f }); //Front Light Left
 		AddPointLight(Vector3{ 2.5f, 2.5f, -5.f }, 50.f, ColorRGB{ .34f, .47f, .68f });
+
+		m_BVH.BuildBVH(m_TriangleMeshGeometries);
 	}
 
 	void Scene_W4_Bunny::Initialize()
@@ -308,16 +310,25 @@ namespace dae {
 		const auto matLambert_White = AddMaterial(new Material_Lambert(colors::White, 1.f));
 		const auto matLambert_GrayBlue = AddMaterial(new Material_Lambert({ .49f, 0.57f, 0.57f }, 1.f));
 			
+		AddPointLight(Vector3{ 0.f, 5.f, 5.f }, 50.f, ColorRGB{ 1.f, .61f, .45f }); //Backlight
 		AddPointLight(Vector3{ -2.5f, 5.f, -5.f }, 70.f, ColorRGB{ 1.f, .8f, .45f }); //Front Light Left
+		AddPointLight(Vector3{ 2.5f, 2.5f, -5.f }, 50.f, ColorRGB{ .34f, .47f, .68f });
 		AddPlane(Vector3{ 0.f, 0.f, 0.f }, Vector3{ 0.f, 1.f, 0.f }, matLambert_GrayBlue); //BOTTOM
 
 		//Bunny
 		m_Meshes.reserve(1);
 		m_Meshes.emplace_back(AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_White));
 		Utils::ParseOBJ("Resources/lowpoly_bunny.obj", m_Meshes[0]->positions, m_Meshes[0]->normals, m_Meshes[0]->indices);
+		m_Meshes[0]->Translate({3,0, 0});
 		m_Meshes[0]->UpdateTransforms();
 
-		m_BVH.BuildBVH(*m_Meshes[0]);
+
+		//Todo figure out why a second mesh is some what of culled?
+		// m_Meshes.emplace_back(AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_White));
+		// Utils::ParseOBJ("Resources/simple_object.obj", m_Meshes[1]->positions, m_Meshes[1]->normals, m_Meshes[1]->indices);
+		// m_Meshes[1]->UpdateTransforms();
+		
+		m_BVH.BuildBVH(m_TriangleMeshGeometries);
 	}
 
 #pragma endregion

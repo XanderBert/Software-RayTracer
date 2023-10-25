@@ -210,7 +210,7 @@ namespace dae
 			return triangle;
 		}
 
-		assert(false && "Triangle index out of bounds");
+		//assert(false && "Triangle index out of bounds");
 		//throw std::out_of_range("Triangle index is out of range.");
 		return Triangle{};
 	}
