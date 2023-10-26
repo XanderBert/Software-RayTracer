@@ -40,6 +40,8 @@ struct BVHNode
         int rootNodeIdx = 0;
         int nodesUsed = 1;
 
+        bool isBuild = false;
+
         Triangle GetTriangleByIndex(int index) const;
     };
 }

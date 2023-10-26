@@ -177,5 +177,5 @@ Vector3 Renderer::GetRayDirection(float x, float y, Camera* pCamera) const
 	const Matrix cameraToWorld{ pCamera->CalculateCameraToWorld() };
 
 	//Normalize and return
-	return Vector3{ cameraToWorld.TransformVector(ray.Normalized()).Normalized() };
+	return Vector3{ cameraToWorld.TransformVector(ray.Normalized()) };
 }

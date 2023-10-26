@@ -10,27 +10,23 @@ namespace dae
 	{
 #pragma region Sphere HitTest
 		//SPHERE HIT-TESTS
+
+		//https://iquilezles.org/articles/intersectors/
+		//an implementation of the algebraic solution to the ray-sphere intersection problem.
 		inline bool HitTest_Sphere(const Sphere& sphere, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
 			const auto oc = ray.origin - sphere.origin;
+			const float b =Vector3::Dot(oc, ray.direction);
+			const auto qc  = oc - b * ray.direction;
+			float t = sphere.radius * sphere.radius - Vector3::Dot(qc, qc);
 
-			const float a = Vector3::Dot(ray.direction, ray.direction);
-			const float b = 2.0f * Vector3::Dot(ray.direction, oc);
-			const float c = Vector3::Dot(oc, oc) - sphere.radius * sphere.radius;
-
-			// Calculate discriminant without taking the square root
-			const auto discriminant = b * b - 4 * a * c;
-
-			if (discriminant < 0)
-			{
-				return false;
-			}
-
-			// Calculate both roots
-			const float t0 = (-b - sqrtf(discriminant)) / (2.0f * a);
-			const float t1 = (-b + sqrtf(discriminant)) / (2.0f * a);
-
-			// Choose the smaller positive root (if any)
+			if(t < 0.0) return false;
+			
+			t  = sqrtf(t);
+			
+			const float t0 = -b - t;
+			const float t1 = -b + t;
+			
 			const float root = (t0 < t1) ? t0 : t1;
 
 			if (root >= ray.min && root <= ray.max)
@@ -60,15 +56,12 @@ namespace dae
 		//PLANE HIT-TESTS
 		inline bool HitTest_Plane(const Plane& plane, const Ray& ray, HitRecord& hitRecord, bool ignoreHitRecord = false)
 		{
-			// Ensure the plane normal is normalized.
-			const Vector3 normalizedNormal = plane.normal.Normalized();
-
-			const float directionNormal = Vector3::Dot(normalizedNormal, ray.direction);
+			const float directionNormal = Vector3::Dot(plane.normal, ray.direction);
 
 			if (fabs(directionNormal) > FLT_EPSILON)
 			{
 				const Vector3 planeOrigin = plane.origin - ray.origin;
-				const float originNormal = Vector3::Dot(planeOrigin, normalizedNormal);
+				const float originNormal = Vector3::Dot(planeOrigin, plane.normal);
 				const float t = originNormal / directionNormal;
 
 				// Check if t is within the valid range and not behind a previous hit.
@@ -80,7 +73,7 @@ namespace dae
 						hitRecord.didHit = true;
 						hitRecord.materialIndex = plane.materialIndex;
 						hitRecord.origin = ray.origin + t * ray.direction;
-						hitRecord.normal = normalizedNormal;
+						hitRecord.normal = plane.normal;
 					}
 					return true;
 				}

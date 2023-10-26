@@ -6,6 +6,8 @@ namespace dae
 {
     bool BVH::IntersectBVH(const Ray& ray, const int nodeIdx)
     {
+        if(!isBuild) return false;
+        
         BVHNode& node = bvhNode[nodeIdx];
         HitRecord hit_record{};
 
@@ -36,6 +38,8 @@ namespace dae
     
     void BVH::IntersectBVH(const Ray& ray, const int nodeIdx, HitRecord& hitRecord)
     {
+        if(!isBuild) return;
+        
         BVHNode& node = bvhNode[nodeIdx];
         
         if (!IntersectAABB( ray, node.aabbMin, node.aabbMax, hitRecord)) return;
@@ -56,6 +60,7 @@ namespace dae
     
     void BVH::BuildBVH(const std::vector<TriangleMesh>& triangleMeshes)
     {
+        
         //Get the mesh
         Meshes = triangleMeshes;
 
@@ -86,6 +91,8 @@ namespace dae
         
         // subdivide recursively
         Subdivide( rootNodeIdx );
+
+        isBuild = true;
     }
     
     void BVH::UpdateNodeBounds( int nodeIdx )

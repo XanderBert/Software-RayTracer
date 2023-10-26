@@ -86,7 +86,6 @@ namespace dae {
 
 	Vector3 Vector3::Random()
 	{
-
 		//TODO Set up proper random generator
 		return { static_cast<float>(rand()) / RAND_MAX, static_cast<float>(rand()) / RAND_MAX, static_cast<float>(rand()) / RAND_MAX };
 	}
