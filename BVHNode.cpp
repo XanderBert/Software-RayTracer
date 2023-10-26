@@ -9,18 +9,13 @@ namespace dae
         BVHNode& node = bvhNode[nodeIdx];
         
         if (!IntersectAABB( ray, node.aabbMin, node.aabbMax, hitRecord)) return;
+
         if (node.isLeaf())
         {
-            for(const auto& mesh : Meshes)
+            for (int i{}; i < node.triangleCount; ++i )
             {
-                for (int i{}; i < node.triangleCount; ++i )
-                {
-                    GeometryUtils::HitTest_Triangle(mesh.GetTriangleByIndex(triangleIndex[node.firstPrim + i]), ray, hitRecord);
-                }
-
-                //Todo Figure out when i call this function istead of a hittest on every triangle that the code is only half as fast.
-                //GeometryUtils::HitTest_TriangleMesh(mesh, ray, hitRecord);
-            }
+                GeometryUtils::HitTest_Triangle(GetTriangleByIndex(triangleIndex[node.firstPrim + i]), ray, hitRecord);
+            }                       
         }
         else
         {
@@ -67,9 +62,6 @@ namespace dae
         {
             const int leafTriIdx = triangleIndex[first + i];
             Triangle leafTri = GetTriangleByIndex(leafTriIdx);
-
-            //Todo Ceheck if this works
-            //Triangle leafTri = m_Mesh.GetTriangleByIndex(leafTriIdx);
             
             node.aabbMin = Vector3::Min(node.aabbMin, leafTri.v0);
             node.aabbMin = Vector3::Min(node.aabbMin, leafTri.v1);
@@ -84,6 +76,7 @@ namespace dae
     {
         // terminate recursion
         BVHNode& node = bvhNode[nodeIdx];
+        
         if (node.triangleCount <= 2) return;
 
         // determine split axis and position
@@ -135,22 +128,24 @@ namespace dae
         Subdivide( leftChildIdx );
         Subdivide( rightChildIdx );
     }
-
+    
     Triangle BVH::GetTriangleByIndex(int index) const
     {
-        Triangle triangle;
-
-        //find the triangle with the leafTriIdx
-        for(const auto& mesh : Meshes)
+        int triangleeIndex = index;
+        
+        for(size_t meshIndex{}; meshIndex < Meshes.size(); ++meshIndex)
         {
-            //Get the triangle
-            const auto tri = mesh.GetTriangleByIndex(index);
+            const int numTrianglesInMesh = static_cast<int>(Meshes[meshIndex].GetAmountOfTriangles());
 
-            //Check if the triangle is valid. //We do that by checking if the normal is not 0
-            if(tri.normal.Magnitude() > FLT_EPSILON || tri.normal.Magnitude() < -FLT_EPSILON) return tri;
+            if (triangleeIndex < numTrianglesInMesh)
+            {
+                return Meshes[meshIndex].GetTriangleByIndex(triangleeIndex);
+
+            }
+
+            triangleeIndex -= numTrianglesInMesh;
         }
-
-        return triangle;
+        return {};
     }
 
     bool BVH::IntersectAABB( const Ray& ray, const Vector3 bmin, const Vector3 bmax, const HitRecord& hitRecord)

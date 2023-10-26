@@ -251,17 +251,22 @@ namespace dae {
 		const auto matCT_GrayRoughMetal = AddMaterial(new Material_CookTorrence({ .972f, .960f, .915f }, 1.f, 1.f));
 		//const auto matCT_GrayMediumMetal = AddMaterial(new Material_CookTorrence({ .972f, .960f, .915f }, 1.f, .6f));
 		const auto matCT_GraySmoothMetal = AddMaterial(new Material_CookTorrence({ .972f, .960f, .915f }, 1.f, .1f));
+		GetMaterials()[matCT_GraySmoothMetal]->SetReflectivity(0.1f);
 		const auto matCT_GrayRoughPlastic = AddMaterial(new Material_CookTorrence({ .75f, .75f, .75f }, .0f, 1.f));
 		const auto matCT_GrayMediumPlastic = AddMaterial(new Material_CookTorrence({ .75f, .75f, .75f }, .0f, .6f));
 		const auto matCT_GraySmoothPlastic = AddMaterial(new Material_CookTorrence({ .75f, .75f, .75f }, .0f, .1f));
 
 		const auto matLambert_GrayBlue = AddMaterial(new Material_Lambert({ .49f, 0.57f, 0.57f }, 1.f));
+		const auto matLambert_GrayBlue_Reflective = AddMaterial(new Material_Lambert({ .49f, 0.57f, 0.57f }, 1.f));
+		GetMaterials()[matLambert_GrayBlue_Reflective]->SetReflectivity(0.01f);
+		
 		const auto matLambert_White = AddMaterial(new Material_Lambert(colors::White, 1.f));
 
+		
 		//const auto matLambertPhong3 = AddMaterial(new Material_CookTorrence(colors::Blue, 1.f, 0.1f));
 
 		AddPlane(Vector3{ 0.f, 0.f, 10.f }, Vector3{ 0.f, 0.f, -1.f }, matLambert_GrayBlue); //BACK
-		AddPlane(Vector3{ 0.f, 0.f, 0.f }, Vector3{ 0.f, 1.f, 0.f }, matLambert_GrayBlue); //BOTTOM
+		AddPlane(Vector3{ 0.f, 0.f, 0.f }, Vector3{ 0.f, 1.f, 0.f }, matLambert_GrayBlue_Reflective); //BOTTOM
 		AddPlane(Vector3{ 0.f, 10.f, 0.f }, Vector3{ 0.f, -1.f, 0.f }, matLambert_GrayBlue); //TOP
 		AddPlane(Vector3{ 5.f, 0.f, 0.f }, Vector3{ -1.f, 0.f, 0.f }, matLambert_GrayBlue); //RIGHT
 		AddPlane(Vector3{ -5.f, 0.f, 0.f }, Vector3{ 1.f, 0.f, 0.f }, matLambert_GrayBlue); //LEFT
@@ -280,7 +285,8 @@ namespace dae {
 		baseTriangle.materialIndex = matCT_GrayRoughMetal;
 
 		m_Meshes.reserve(3);
-		m_Meshes.emplace_back(AddTriangleMesh(TriangleCullMode::FrontFaceCulling, matLambert_White));
+		
+		m_Meshes.emplace_back(AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_White));
 		m_Meshes.back()->AppendTriangle(baseTriangle, true);
 		m_Meshes.back()->Translate({ -1.75f,4.5f,0.f });
 		m_Meshes.back()->UpdateTransforms();
@@ -289,8 +295,8 @@ namespace dae {
 		m_Meshes.back()->AppendTriangle(baseTriangle, true);
 		m_Meshes.back()->Translate({ 0.f,4.5f,0.f });
 		m_Meshes.back()->UpdateTransforms();
-
-		m_Meshes.emplace_back(AddTriangleMesh(TriangleCullMode::NoCulling, matLambert_White));
+		
+		m_Meshes.emplace_back(AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_White));
 		m_Meshes.back()->AppendTriangle(baseTriangle, true);
 		m_Meshes.back()->Translate({ 1.75f,4.5f,0.f });
 		m_Meshes.back()->UpdateTransforms();
@@ -299,6 +305,9 @@ namespace dae {
 		AddPointLight(Vector3{ -2.5f, 5.f, -5.f }, 70.f, ColorRGB{ 1.f, .8f, .45f }); //Front Light Left
 		AddPointLight(Vector3{ 2.5f, 2.5f, -5.f }, 50.f, ColorRGB{ .34f, .47f, .68f });
 
+		
+
+		
 		m_BVH.BuildBVH(m_TriangleMeshGeometries);
 	}
 
@@ -321,9 +330,7 @@ namespace dae {
 		Utils::ParseOBJ("Resources/lowpoly_bunny.obj", m_Meshes[0]->positions, m_Meshes[0]->normals, m_Meshes[0]->indices);
 		m_Meshes[0]->Translate({3,0, 0});
 		m_Meshes[0]->UpdateTransforms();
-
-
-		//Todo figure out why a second mesh is some what of culled?
+		
 		// m_Meshes.emplace_back(AddTriangleMesh(TriangleCullMode::BackFaceCulling, matLambert_White));
 		// Utils::ParseOBJ("Resources/simple_object.obj", m_Meshes[1]->positions, m_Meshes[1]->normals, m_Meshes[1]->indices);
 		// m_Meshes[1]->UpdateTransforms();

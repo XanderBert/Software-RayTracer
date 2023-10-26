@@ -30,76 +30,87 @@ void Renderer::RenderPixel(Scene* pScene, const Vector2& rayLocation) const
 {
 	auto& materials = pScene->GetMaterials();
 	const auto rayDirection = GetRayDirection(static_cast<float>(rayLocation.x), static_cast<float>(rayLocation.y), &pScene->GetCamera());
-	const Ray viewRay = { pScene->GetCamera().origin, rayDirection };
-	
+	Ray viewRay = { pScene->GetCamera().origin, rayDirection };
+	const size_t bounces{ 5 };
 	ColorRGB finalColor{};
 	
-	//Contains information about a potential hit.
-	HitRecord closestHit{};
-
-	//Get the closest hit for the current ray.
-	pScene->GetClosestHit(viewRay, closestHit);
-
-
-	//if we did hit something
-	if (closestHit.didHit)
+	for(size_t i{}; i < bounces; ++i)
 	{
-		const Vector3 offsetPosition{ closestHit.origin + closestHit.normal * m_RayOffset };
+		//Contains information about a potential hit.
+		HitRecord closestHit{};
 
-		//Go over all lights in the scene
-		for (const auto& light : pScene->GetLights())
+		//Get the closest hit for the current ray.
+		pScene->GetClosestHit(viewRay, closestHit);
+	
+		//if we did hit something
+		if (closestHit.didHit)
 		{
-			//Calculate the direction of the light
-			Vector3 lightDirection{ LightUtils::GetDirectionToLight(light, offsetPosition) };
+			const Vector3 offsetPosition{ closestHit.origin + closestHit.normal * m_RayOffset };
 
+			//Go over all lights in the scene
+			for (const auto& light : pScene->GetLights())
+			{
+				//Calculate the direction of the light
+				Vector3 lightDirection{ LightUtils::GetDirectionToLight(light, offsetPosition) };
 				const auto lightDistance{ lightDirection.Normalize() };
 
-			//Calculate the shadows
-			if (m_ShadowsEnabled)
-			{
-				const Ray lightRay{ offsetPosition, lightDirection, FLT_MIN, lightDistance };
+				//Calculate the shadows
+				if (m_ShadowsEnabled)
+				{
+					const Ray lightRay{ offsetPosition, lightDirection, FLT_MIN, lightDistance };
 
-				HitRecord lightHit{};
-				
-				pScene->GetClosestHit(lightRay, lightHit);
+					HitRecord lightHit{};
+					pScene->GetClosestHit(lightRay, lightHit);
 
-				//if we hitted something, we are in shadow, so skip the Lighting calculation
-				if (lightHit.didHit) {continue;}
-			}
+					//if we hitted something, we are in shadow, so skip the Lighting calculation
+					if (lightHit.didHit) {continue;}
+				}
 	
-			switch (m_LightingMode)
-			{
-			case LightingMode::ObservedArea: //LambertCosine
-			{
-				const auto lightNormalAngle{ std::max(Vector3::Dot(closestHit.normal, lightDirection), 0.0f) };
-				finalColor += ColorRGB{ lightNormalAngle, lightNormalAngle, lightNormalAngle };
-				break;
-			}
+				switch (m_LightingMode)
+				{
+				case LightingMode::ObservedArea: //LambertCosine
+					{
+						const auto lightNormalAngle{ std::max(Vector3::Dot(closestHit.normal, lightDirection), 0.0f) };
+						finalColor += ColorRGB{ lightNormalAngle, lightNormalAngle, lightNormalAngle };
+						break;
+					}
 	
-			case LightingMode::Radiance:
-			{
-				finalColor += LightUtils::GetRadiance(light, closestHit.origin);
-				break;
-			}
+				case LightingMode::Radiance:
+					{
+						finalColor += LightUtils::GetRadiance(light, closestHit.origin);
+						break;
+					}
 	
-			case LightingMode::BRDF:
-			{
-				const ColorRGB BRDF{ materials[closestHit.materialIndex]->Shade(closestHit, lightDirection, -rayDirection) };
-				finalColor += BRDF;
-				break;
-			}
+				case LightingMode::BRDF:
+					{
+						const ColorRGB BRDF{ materials[closestHit.materialIndex]->Shade(closestHit, lightDirection, -rayDirection) };
+						finalColor += BRDF;
+						break;
+					}
 	
-			case LightingMode::Combined:
-			{
-				const float lightNormalAngle{ std::max(Vector3::Dot(closestHit.normal, lightDirection), 0.0f) };
-				const ColorRGB radiance{ LightUtils::GetRadiance(light, closestHit.origin) };
-				const ColorRGB BRDF{ materials[closestHit.materialIndex]->Shade(closestHit, lightDirection, -rayDirection) };
-				finalColor += radiance * BRDF * lightNormalAngle;
-				break;
-			}
+				case LightingMode::Combined:
+					{
+						const float lightNormalAngle{ std::max(Vector3::Dot(closestHit.normal, lightDirection), 0.0f) };
+						const ColorRGB radiance{ LightUtils::GetRadiance(light, closestHit.origin) };
+						const ColorRGB BRDF{ materials[closestHit.materialIndex]->Shade(closestHit, lightDirection, -rayDirection) };
+						finalColor += radiance * BRDF * lightNormalAngle;
+						break;
+					}
+				}
 			}
 		}
+		else
+		{
+			//if we didn't hit anything, we are looking at the skybox
+			//finalColor += pScene->GetSkybox().GetColor(rayDirection);
+		}
+
+		
+		//Reflect the ray
+		viewRay = Ray{ closestHit.origin, Vector3::Reflect(rayDirection, closestHit.normal) * materials[closestHit.materialIndex]->GetReflectivity() };
 	}
+	
+	
 	
 	//Update Color in Buffer
 	finalColor.MaxToOne();
