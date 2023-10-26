@@ -26,12 +26,21 @@ int main(int argc, char* args[])
 
 	//Create window + surfaces
 	SDL_Init(SDL_INIT_VIDEO);
+	constexpr uint32_t width = 640;
+	constexpr uint32_t height = 480;
 
-	const uint32_t width = 640;
-	const uint32_t height = 480;
+	//const auto pScene = new Scene_W1();
+	//const auto pScene = new Scene_W2();
+	//const auto pScene = new Scene_W3();
+	const auto pScene = new Scene_W4();
+	//const auto pScene = new Scene_W4_Bunny();
 
+	std::string title = "RayTracer - Xander Berten - ";
+	title += pScene->GetSceneName();
+	title += " - " __DATE__ " " __TIME__;
+	
 	SDL_Window* pWindow = SDL_CreateWindow(
-		"RayTracer - Xander Berten",
+		title.c_str(),
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED,
 		width, height, 0);
@@ -43,11 +52,6 @@ int main(int argc, char* args[])
 	const auto pTimer = new Timer();
 	const auto pRenderer = new Renderer(pWindow);
 
-	//const auto pScene = new Scene_W1();
-	//const auto pScene = new Scene_W2();
-	//const auto pScene = new Scene_W3();
-	//const auto pScene = new Scene_W4();
-	const auto pScene = new Scene_W4_Bunny();
 
 	pScene->Initialize();
 

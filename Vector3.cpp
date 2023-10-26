@@ -84,6 +84,13 @@ namespace dae {
 		return { std::max(a.x, b.x), std::max(a.y, b.y), std::max(a.z, b.z) };
 	}
 
+	Vector3 Vector3::Random()
+	{
+
+		//TODO Set up proper random generator
+		return { static_cast<float>(rand()) / RAND_MAX, static_cast<float>(rand()) / RAND_MAX, static_cast<float>(rand()) / RAND_MAX };
+	}
+
 
 	Vector4 Vector3::ToPoint4() const
 	{

@@ -4,6 +4,36 @@
 
 namespace dae
 {
+    bool BVH::IntersectBVH(const Ray& ray, const int nodeIdx)
+    {
+        BVHNode& node = bvhNode[nodeIdx];
+        HitRecord hit_record{};
+
+        //if the AABB is not hit, return false
+        const bool AABB = IntersectAABB(ray, node.aabbMin, node.aabbMax, hit_record);
+        if(!AABB) return false;
+        
+        if (node.isLeaf())
+        {
+            bool didHit = false;
+            for (int i{}; i < node.triangleCount; ++i )
+            {
+               didHit =  GeometryUtils::HitTest_Triangle(GetTriangleByIndex(triangleIndex[node.firstPrim + i]), ray, hit_record);
+               if(didHit) return true;
+            }                       
+        }
+        else
+        {
+            const bool next = IntersectBVH( ray, node.firstPrim);
+            const bool nextR = IntersectBVH( ray, node.firstPrim + 1);
+        
+            if(next || nextR) return true;
+        }
+        
+        return false;
+    }
+
+    
     void BVH::IntersectBVH(const Ray& ray, const int nodeIdx, HitRecord& hitRecord)
     {
         BVHNode& node = bvhNode[nodeIdx];

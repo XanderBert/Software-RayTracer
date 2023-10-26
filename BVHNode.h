@@ -23,6 +23,8 @@ struct BVHNode
     struct BVH
     {
         void IntersectBVH(const Ray& ray, const int nodeIdx, HitRecord& hitRecord);
+        bool IntersectBVH(const Ray& ray, const int nodeIdx);
+        
         void BuildBVH(const std::vector<TriangleMesh>& triangleMeshes);
         void UpdateNodeBounds( int nodeIdx );
         static bool IntersectAABB(const Ray& ray, const Vector3 bmin, const Vector3 bmax, const HitRecord& hitRecord);

@@ -31,7 +31,7 @@ void Renderer::RenderPixel(Scene* pScene, const Vector2& rayLocation) const
 	auto& materials = pScene->GetMaterials();
 	const auto rayDirection = GetRayDirection(static_cast<float>(rayLocation.x), static_cast<float>(rayLocation.y), &pScene->GetCamera());
 	Ray viewRay = { pScene->GetCamera().origin, rayDirection };
-	const size_t bounces{ 5 };
+	const size_t bounces{ 1 };
 	ColorRGB finalColor{};
 	
 	for(size_t i{}; i < bounces; ++i)
@@ -58,12 +58,8 @@ void Renderer::RenderPixel(Scene* pScene, const Vector2& rayLocation) const
 				if (m_ShadowsEnabled)
 				{
 					const Ray lightRay{ offsetPosition, lightDirection, FLT_MIN, lightDistance };
-
-					HitRecord lightHit{};
-					pScene->GetClosestHit(lightRay, lightHit);
-
 					//if we hitted something, we are in shadow, so skip the Lighting calculation
-					if (lightHit.didHit) {continue;}
+					if (pScene->DoesHit(lightRay)) {continue;}
 				}
 	
 				switch (m_LightingMode)
@@ -107,7 +103,10 @@ void Renderer::RenderPixel(Scene* pScene, const Vector2& rayLocation) const
 
 		
 		//Reflect the ray
-		viewRay = Ray{ closestHit.origin, Vector3::Reflect(rayDirection, closestHit.normal) * materials[closestHit.materialIndex]->GetReflectivity() };
+
+		//Todo Look how to properly implement refelctions
+		//viewRay = Ray{ closestHit.origin, Vector3::Reflect(rayDirection, closestHit.normal)  };
+		//viewRay.max = viewRay.max * materials[closestHit.materialIndex]->GetReflectivity();
 	}
 	
 	
