@@ -1,7 +1,9 @@
 #include "Vector3.h"
 #include "Vector4.h"
 #include <cassert>
+#include "Random/RandomNumberGenerator.h"
 #include <cmath>
+
 
 namespace dae {
 	const Vector3 Vector3::UnitX = Vector3{ 1, 0, 0 };
@@ -84,10 +86,40 @@ namespace dae {
 		return { std::max(a.x, b.x), std::max(a.y, b.y), std::max(a.z, b.z) };
 	}
 
-	Vector3 Vector3::Random()
+	Vector3 Vector3::GetRandomVector3(float min, float max)
 	{
-		//TODO Set up proper random generator
-		return { static_cast<float>(rand()) / RAND_MAX, static_cast<float>(rand()) / RAND_MAX, static_cast<float>(rand()) / RAND_MAX };
+		return Vector3
+		{
+			RandomNumberGenerator::GetRandomValue(min, max),
+			RandomNumberGenerator::GetRandomValue(min, max),
+			RandomNumberGenerator::GetRandomValue(min, max)
+		};
+	}
+
+	Vector3 Vector3::GetRandomInUnitSphere()
+	{
+		//Use a simple rejection method to generate a random point in a unit sphere
+		while(true)
+		{
+			const auto point = GetRandomVector3(-1,1);
+			if(point.SqrMagnitude() < 1) return point;
+		}
+	}
+
+	Vector3 Vector3::GetRandomUnitVector()
+	{
+		return GetRandomInUnitSphere().Normalized();
+	}
+
+	Vector3 Vector3::GetRandomInHemisphere(const Vector3& normal)
+	{
+		const auto unitVector = GetRandomUnitVector();
+
+		//if in the same hemisphere as the normal, return it
+		if(Dot(unitVector, normal) > 0.0f) return unitVector;
+
+		//otherwise return the inverse
+		return -unitVector;
 	}
 
 

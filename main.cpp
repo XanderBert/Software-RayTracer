@@ -23,7 +23,7 @@ int main(int argc, char* args[])
 	//Unreferenced parameters
 	(void)argc;
 	(void)args;
-
+	
 	//Create window + surfaces
 	SDL_Init(SDL_INIT_VIDEO);
 	constexpr uint32_t width = 640;
@@ -32,12 +32,14 @@ int main(int argc, char* args[])
 	//const auto pScene = new Scene_W1();
 	//const auto pScene = new Scene_W2();
 	//const auto pScene = new Scene_W3();
-	//const auto pScene = new Scene_W4();
-	const auto pScene = new Scene_W4_Bunny();
+	const auto pScene = new Scene_W4();
 
-	std::string title = "RayTracer - Xander Berten - ";
+	//const auto pScene = new Scene_W4_Bunny();
+
+
+	pScene->Initialize();
+	std::string title = "RayTracer - Xander Berten (2DAE09) - ";
 	title += pScene->GetSceneName();
-	title += " - " __DATE__ " " __TIME__;
 	
 	SDL_Window* pWindow = SDL_CreateWindow(
 		title.c_str(),
@@ -53,7 +55,7 @@ int main(int argc, char* args[])
 	const auto pRenderer = new Renderer(pWindow);
 
 
-	pScene->Initialize();
+	
 
 	//Start loop
 	pTimer->Start();
@@ -81,6 +83,7 @@ int main(int argc, char* args[])
 				if (e.key.keysym.scancode == SDL_SCANCODE_X) takeScreenshot = true;
 				if (e.key.keysym.scancode == SDL_SCANCODE_F2) pRenderer->ToggleShadows();
 				if (e.key.keysym.scancode == SDL_SCANCODE_F3) pRenderer->CycleLightingMode();
+				if (e.key.keysym.scancode == SDL_SCANCODE_F6) pTimer->StartBenchmark();
 
 				break;
 			}

@@ -14,6 +14,7 @@ namespace dae
 	struct Vector3;
 	struct Matrix;
 	struct Camera;
+	struct ColorRGB;
 
 	class Renderer final
 	{

@@ -47,10 +47,14 @@ namespace dae
 
 	protected:
 		std::string	sceneName;
-
 		std::vector<Plane> m_PlaneGeometries{};
 		std::vector<Sphere> m_SphereGeometries{};
 		std::vector<TriangleMesh> m_TriangleMeshGeometries{};
+
+
+		//Todo, Delete this later after debugging
+		std::vector<Triangle> m_TriangleGeometries{};
+		
 		std::vector<Light> m_Lights{};
 		std::vector<Material*> m_Materials{};
 
@@ -134,6 +138,8 @@ namespace dae
 		Scene_W4& operator=(const Scene_W4&) = delete;
 		Scene_W4& operator=(Scene_W4&&) noexcept = delete;
 
+		void Update(dae::Timer* pTimer) override;
+
 		void Initialize() override;
 	private:
 		std::vector<TriangleMesh*> m_Meshes{};
@@ -152,6 +158,8 @@ namespace dae
 		Scene_W4_Bunny& operator=(const Scene_W4_Bunny&) = delete;
 		Scene_W4_Bunny& operator=(Scene_W4_Bunny&&) noexcept = delete;
 
+		void Update(dae::Timer* pTimer) override;
+		
 		void Initialize() override;
 	
 	private:

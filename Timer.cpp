@@ -1,6 +1,9 @@
 #include "Timer.h"
+
 #include <iostream>
 #include <numeric>
+
+#include <iostream>
 #include <fstream>
 
 #include "SDL.h"
@@ -56,9 +59,9 @@ void Timer::StartBenchmark(int numFrames)
 	m_BenchmarkCurrFrame = 0;
 
 	m_Benchmarks.clear();
-	m_Benchmarks.reserve(m_BenchmarkFrames);
+	m_Benchmarks.resize(m_BenchmarkFrames);
 
-	std::cout << "**BENCHMARK STARTED**\n";
+	std::cout<< "**BENCHMARK STARTED**\n";
 }
 
 void Timer::Update()
@@ -105,7 +108,7 @@ void Timer::Update()
 			m_BenchmarkHigh = std::max(m_BenchmarkHigh, m_dFPS);
 
 			++m_BenchmarkCurrFrame;
-			if (m_BenchmarkCurrFrame >= m_BenchmarkFrames)
+			if(m_BenchmarkCurrFrame >= m_BenchmarkFrames)
 			{
 				m_BenchmarkActive = false;
 				m_BenchmarkAvg = std::accumulate(m_Benchmarks.begin(), m_Benchmarks.end(), 0.f) / float(m_BenchmarkFrames);

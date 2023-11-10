@@ -31,7 +31,7 @@ namespace dae
 		
 	protected:
 		
-		float m_Reflectivity{ 0.0f };
+		float m_Reflectivity{ -0.0f };
 	};
 #pragma endregion
 
@@ -106,7 +106,7 @@ namespace dae
 	class Material_CookTorrence final : public Material
 	{
 	public:
-		Material_CookTorrence(const ColorRGB& albedo, float metalness, float roughness):
+		Material_CookTorrence(const ColorRGB& albedo, const float metalness, float roughness):
 			m_Albedo(albedo), m_Metalness(metalness), m_Roughness(roughness)
 		{
 		}

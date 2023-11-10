@@ -27,8 +27,11 @@ namespace dae
 		static Vector3 Lico(float f1, const Vector3& v1, float f2, const Vector3& v2, float f3, const Vector3& v3);
 		static Vector3 Min(const Vector3& v1, const Vector3& v2);
 		static Vector3 Max(const Vector3& v1, const Vector3& v2);
-		static Vector3 Random();
-
+		static Vector3 GetRandomVector3(float min, float max);
+		static Vector3 GetRandomInUnitSphere();
+		static Vector3 GetRandomUnitVector();
+		static Vector3 GetRandomInHemisphere(const Vector3& normal);
+		
 		Vector4 ToPoint4() const;
 		Vector4 ToVector4() const;
 

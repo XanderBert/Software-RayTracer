@@ -11,6 +11,7 @@
 #include "Utils.h"
 
 
+
 using namespace dae;
 
 Renderer::Renderer(SDL_Window* pWindow) :
@@ -30,8 +31,8 @@ void Renderer::RenderPixel(Scene* pScene, const Vector2& rayLocation) const
 {
 	auto& materials = pScene->GetMaterials();
 	const auto rayDirection = GetRayDirection(static_cast<float>(rayLocation.x), static_cast<float>(rayLocation.y), &pScene->GetCamera());
-	Ray viewRay = { pScene->GetCamera().origin, rayDirection };
-	const size_t bounces{ 1 };
+	const Ray viewRay = { pScene->GetCamera().origin, rayDirection };
+	constexpr size_t bounces{ 1 };
 	ColorRGB finalColor{};
 	
 	for(size_t i{}; i < bounces; ++i)
@@ -52,14 +53,23 @@ void Renderer::RenderPixel(Scene* pScene, const Vector2& rayLocation) const
 			{
 				//Calculate the direction of the light
 				Vector3 lightDirection{ LightUtils::GetDirectionToLight(light, offsetPosition) };
-				const auto lightDistance{ lightDirection.Normalize() };
 
+				const auto lightDistance{ lightDirection.Magnitude() };
+				
+				//Normalize the direction
+				lightDirection /= lightDistance;
+
+				
 				//Calculate the shadows
 				if (m_ShadowsEnabled)
 				{
 					const Ray lightRay{ offsetPosition, lightDirection, FLT_MIN, lightDistance };
+
 					//if we hitted something, we are in shadow, so skip the Lighting calculation
-					if (pScene->DoesHit(lightRay)) {continue;}
+					if (pScene->DoesHit(lightRay))
+					{
+						continue;
+					}
 				}
 	
 				switch (m_LightingMode)
@@ -88,9 +98,10 @@ void Renderer::RenderPixel(Scene* pScene, const Vector2& rayLocation) const
 					{
 						const float lightNormalAngle{ std::max(Vector3::Dot(closestHit.normal, lightDirection), 0.0f) };
 						const ColorRGB radiance{ LightUtils::GetRadiance(light, closestHit.origin) };
-						const ColorRGB BRDF{ materials[closestHit.materialIndex]->Shade(closestHit, lightDirection, -rayDirection) };
+						const auto material = materials[closestHit.materialIndex];
+						const ColorRGB BRDF{ material->Shade(closestHit, lightDirection, -rayDirection) };
 						finalColor += radiance * BRDF * lightNormalAngle;
-						break;
+		
 					}
 				}
 			}
@@ -99,14 +110,12 @@ void Renderer::RenderPixel(Scene* pScene, const Vector2& rayLocation) const
 		{
 			//if we didn't hit anything, we are looking at the skybox
 			//finalColor += pScene->GetSkybox().GetColor(rayDirection);
+			finalColor += ColorRGB{0.2f, 0.3f, 0.5f};
 		}
-
-		
 		//Reflect the ray
-
-		//Todo Look how to properly implement refelctions
+		//Todo Look how to properly implement reflections
 		//viewRay = Ray{ closestHit.origin, Vector3::Reflect(rayDirection, closestHit.normal)  };
-		//viewRay.max = viewRay.max * materials[closestHit.materialIndex]->GetReflectivity();
+		//viewRay.max =  materials[closestHit.materialIndex]->GetReflectivity();
 	}
 	
 	
@@ -118,7 +127,7 @@ void Renderer::RenderPixel(Scene* pScene, const Vector2& rayLocation) const
 	static_cast<uint8_t>(finalColor.r * 255),
 	static_cast<uint8_t>(finalColor.g * 255),
 	static_cast<uint8_t>(finalColor.b * 255));
-}
+}	
 
 void Renderer::SetupPixelIndices()
 {
@@ -134,7 +143,6 @@ void Renderer::SetupPixelIndices()
 	}
 }
 
-
 void Renderer::Render(Scene* pScene) const
 {
 	std::for_each(std::execution::par, m_PixelIndices.begin(), m_PixelIndices.end(), [&](const Vector2& rayLocation)
@@ -146,8 +154,6 @@ void Renderer::Render(Scene* pScene) const
 	//Update SDL Surface
 	SDL_UpdateWindowSurface(m_pWindow);
 }
-
-
 
 bool Renderer::SaveBufferToImage() const
 {

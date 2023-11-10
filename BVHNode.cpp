@@ -6,6 +6,8 @@ namespace dae
 {
     bool BVH::IntersectBVH(const Ray& ray, const int nodeIdx)
     {
+
+        //If the tree is not build we can not hit
         if(!isBuild) return false;
         
         BVHNode& node = bvhNode[nodeIdx];
@@ -13,17 +15,26 @@ namespace dae
 
         //if the AABB is not hit, return false
         const bool AABB = IntersectAABB(ray, node.aabbMin, node.aabbMax, hit_record);
+
+        //If the ray does not hit the bounding box we won't hit the mesh
         if(!AABB) return false;
-        
+
+        //If nod is an ending node, check if we hit the triangle
         if (node.isLeaf())
         {
             bool didHit = false;
+
+            //Hit-test every triangle in the node
             for (int i{}; i < node.triangleCount; ++i )
             {
                didHit =  GeometryUtils::HitTest_Triangle(GetTriangleByIndex(triangleIndex[node.firstPrim + i]), ray, hit_record);
-               if(didHit) return true;
+
+                //If we hit, return true
+               if(didHit) {return true;}
             }                       
         }
+        
+        //Go deeper in the tree
         else
         {
             const bool next = IntersectBVH( ray, node.firstPrim);
@@ -31,7 +42,8 @@ namespace dae
         
             if(next || nextR) return true;
         }
-        
+
+        //Should this false be here?
         return false;
     }
 
@@ -60,11 +72,12 @@ namespace dae
     
     void BVH::BuildBVH(const std::vector<TriangleMesh>& triangleMeshes)
     {
+        if(triangleMeshes.empty()) return;
+
         
         //Get the mesh
         Meshes = triangleMeshes;
-
-
+        
         //Add the triangle count
         for(const auto& mesh : Meshes)
         {
@@ -80,7 +93,6 @@ namespace dae
         {
             triangleIndex[i] = i;
         }
-
         
         // assign all triangles to root node
         BVHNode& root = bvhNode[rootNodeIdx];
@@ -98,18 +110,19 @@ namespace dae
     void BVH::UpdateNodeBounds( int nodeIdx )
     {
         BVHNode& node = bvhNode[nodeIdx];
-        node.aabbMin = Vector3( FLT_MAX,FLT_MAX,FLT_MAX  );
-        node.aabbMax = Vector3( FLT_MIN,FLT_MIN, FLT_MIN  );
+
+        const Triangle firstTriangle = GetTriangleByIndex(triangleIndex[node.firstPrim]);
+        node.aabbMin = node.aabbMax = firstTriangle.v0;
         
         for (int first = node.firstPrim, i = 0; i < node.triangleCount; ++i)
         {
             const int leafTriIdx = triangleIndex[first + i];
             Triangle leafTri = GetTriangleByIndex(leafTriIdx);
-            
+    
             node.aabbMin = Vector3::Min(node.aabbMin, leafTri.v0);
             node.aabbMin = Vector3::Min(node.aabbMin, leafTri.v1);
             node.aabbMin = Vector3::Min(node.aabbMin, leafTri.v2);
-            
+    
             node.aabbMax = Vector3::Max(node.aabbMax, leafTri.v0);
             node.aabbMax = Vector3::Max(node.aabbMax, leafTri.v1);
             node.aabbMax = Vector3::Max(node.aabbMax, leafTri.v2);
@@ -129,8 +142,6 @@ namespace dae
 
         // Calculate the position of the splitting plane (median of the chosen axis)
         const float splitPos = node.aabbMin[axis] + extent[axis] * 0.5f;
-
-
         
         //Left pointer starts at the beginning of the array
         //Right pointer starts at the end of the array
@@ -181,19 +192,16 @@ namespace dae
     
     Triangle BVH::GetTriangleByIndex(int index) const
     {
-        int triangleeIndex = index;
-        
-        for(size_t meshIndex{}; meshIndex < Meshes.size(); ++meshIndex)
+        for (const auto& mesh : Meshes)
         {
-            const int numTrianglesInMesh = static_cast<int>(Meshes[meshIndex].GetAmountOfTriangles());
+            const int numTrianglesInMesh = static_cast<int>(mesh.GetAmountOfTriangles());
 
-            if (triangleeIndex < numTrianglesInMesh)
+            if (index < numTrianglesInMesh)
             {
-                return Meshes[meshIndex].GetTriangleByIndex(triangleeIndex);
-
+                return mesh.GetTriangleByIndex(index);
             }
 
-            triangleeIndex -= numTrianglesInMesh;
+            index -= numTrianglesInMesh;
         }
         return {};
     }

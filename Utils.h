@@ -28,7 +28,7 @@ namespace dae
 			const float t1 = -b + t;
 			
 			const float root = (t0 < t1) ? t0 : t1;
-
+			
 			if (root >= ray.min && root <= ray.max)
 			{
 				if (!ignoreHitRecord && root < hitRecord.t)
@@ -129,13 +129,11 @@ namespace dae
 			{
 				if (!ignoreHitRecord && t < hitRecord.t)
 				{
-					const auto triangleNormal = Vector3::Cross(edge1, edge2).Normalized();
-
 					hitRecord.t = t;
 					hitRecord.didHit = true;
 					hitRecord.materialIndex = triangle.materialIndex;
 					hitRecord.origin = ray.origin + (t * ray.direction);
-					hitRecord.normal = triangleNormal;
+					hitRecord.normal = triangle.normal;
 				}
 
 				return true;
@@ -227,6 +225,10 @@ namespace dae
 		//Just parses vertices and indices
 #pragma warning(push)
 #pragma warning(disable : 4505) //Warning unreferenced local function
+
+
+
+		
 		static bool ParseOBJ(const std::string& filename, std::vector<Vector3>& positions, std::vector<Vector3>& normals, std::vector<int>& indices)
 		{
 			std::ifstream file(filename);
@@ -293,6 +295,43 @@ namespace dae
 
 			return true;
 		}
+
+		static bool ParseOBJ(const std::string& filename, std::vector<float>& positionsX, std::vector<float>& positionsY, std::vector<float>& positionsZ, std::vector<float>& normalsX, std::vector<float>& normalsY, std::vector<float>& normalsZ, std::vector<int>& indices)
+		{
+			std::vector<Vector3> positions;
+			std::vector<Vector3> normals;
+
+			const bool didParse = ParseOBJ(filename, positions, normals, indices);
+			if (!didParse) return false;
+
+
+
+			//Positions
+			positionsX.reserve(positions.size());
+			positionsY.reserve(positions.size());
+			positionsZ.reserve(positions.size());
+			for(const auto pos : positions)
+			{
+				positionsX.emplace_back(pos.x);
+				positionsY.emplace_back(pos.y);
+				positionsZ.emplace_back(pos.z);
+			}
+
+
+			//Normals
+			normalsX.reserve(normals.size());
+			normalsY.reserve(normals.size());
+			normalsZ.reserve(normals.size());
+			for(const auto normal : normals)
+			{
+				normalsX.emplace_back(normal.x);
+				normalsY.emplace_back(normal.y);
+				normalsZ.emplace_back(normal.z);
+			}
+
+			return true;
+		}
+		
 #pragma warning(pop)
 	}
 }

@@ -59,12 +59,6 @@
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>../lib/vld/x64;../lib/SDL2-2.28.3/x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
-    <PostBuildEvent>
-      <Command>xcopy "$(SolutionDir)..\lib\SDL2-2.28.3\x64\SDL2.dll" "$(OutDir)" /y /D
-xcopy "$(SolutionDir)..\lib\vld\x64\vld_x64.dll" "$(OutDir)" /y /D
-xcopy "$(SolutionDir)..\lib\vld\x64\dbghelp.dll" "$(OutDir)" /y /D
-xcopy "$(SolutionDir)..\lib\vld\x64\Microsoft.DTfW.DHL.manifest" "$(OutDir)" /y /D</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -103,6 +97,7 @@ xcopy "$(SolutionDir)..\lib\vld\x64\Microsoft.DTfW.DHL.manifest" "$(OutDir)" /y 
     <ClInclude Include="Material.h" />
     <ClInclude Include="MathHelpers.h" />
     <ClInclude Include="Matrix.h" />
+    <ClInclude Include="Random\RandomNumberGenerator.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="Timer.h" />
