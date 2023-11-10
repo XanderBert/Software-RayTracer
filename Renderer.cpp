@@ -47,7 +47,7 @@ void Renderer::RenderPixel(Scene* pScene, const Vector2& rayLocation) const
 		if (closestHit.didHit)
 		{
 			const Vector3 offsetPosition{ closestHit.origin + closestHit.normal * m_RayOffset };
-
+			
 			//Go over all lights in the scene
 			for (const auto& light : pScene->GetLights())
 			{
@@ -58,12 +58,11 @@ void Renderer::RenderPixel(Scene* pScene, const Vector2& rayLocation) const
 				
 				//Normalize the direction
 				lightDirection /= lightDistance;
-
 				
 				//Calculate the shadows
 				if (m_ShadowsEnabled)
 				{
-					const Ray lightRay{ offsetPosition, lightDirection, FLT_MIN, lightDistance };
+					const Ray lightRay{ offsetPosition, lightDirection, FLT_MIN, lightDistance  };
 
 					//if we hitted something, we are in shadow, so skip the Lighting calculation
 					if (pScene->DoesHit(lightRay))

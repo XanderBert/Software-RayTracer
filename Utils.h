@@ -125,7 +125,7 @@ namespace dae
 			//Calculate where the intersection happens on the line.
 			const auto t = inverseDeterminant * Vector3::Dot(edge2, q);
 
-			if (t > ray.min)
+			if (t > ray.min && t < ray.max)
 			{
 				if (!ignoreHitRecord && t < hitRecord.t)
 				{
